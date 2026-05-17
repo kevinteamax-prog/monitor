@@ -78,6 +78,20 @@ input,select,button{font-family:var(--font);font-size:14px}
 .btn-sub:hover{box-shadow:0 6px 20px rgba(79,142,247,.5);transform:translateY(-1px)}.btn-sub:active{transform:translateY(0)}.btn-sub:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;transform:none}
 .ok-msg{color:var(--green);font-size:13px;display:none}
 .done-banner{background:rgba(61,214,140,.12);border:1px solid rgba(61,214,140,.4);border-radius:8px;padding:11px 16px;font-size:13px;color:#3dd68c;font-weight:500;margin-bottom:14px;display:none}
+.ai-card{background:linear-gradient(135deg,#0e1628,#141030);border:1px solid rgba(167,139,250,.35);border-radius:14px;padding:20px;margin-bottom:14px;display:none}
+.ai-card-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.ai-card-icon{font-size:20px}
+.ai-card-title{font-size:14px;font-weight:700;color:var(--purple)}
+.ai-card-badge{font-size:10px;background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.3);color:var(--purple);border-radius:4px;padding:2px 7px;font-family:var(--mono)}
+.ai-body{font-size:13px;color:#c8c0e8;line-height:1.75}
+.ai-body .warn{color:var(--amber);font-weight:600}
+.ai-body .good{color:var(--green);font-weight:600}
+.ai-body .tip{color:#9db4d8}
+.ai-loading{display:flex;align-items:center;gap:10px;color:var(--purple);font-size:13px}
+.ai-dots span{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--purple);animation:aiDot 1.2s infinite;margin:0 2px}
+.ai-dots span:nth-child(2){animation-delay:.2s}
+.ai-dots span:nth-child(3){animation-delay:.4s}
+@keyframes aiDot{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
 
 /* Screenshot upload */
 .img-thumb-wrap{position:relative;width:100px;height:100px}
@@ -242,6 +256,18 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
       <div class="sub-row">
         <button class="btn-sub" id="sub-btn" onclick="submitSlot()">✓ 提交此時段數據</button>
         <span class="ok-msg" id="ok-msg">✅ 雲端已儲存！</span>
+      </div>
+    </div>
+
+    <!-- AI 分析卡片 -->
+    <div class="ai-card" id="ai-card">
+      <div class="ai-card-head">
+        <span class="ai-card-icon">🤖</span>
+        <span class="ai-card-title">AI 數據分析</span>
+        <span class="ai-card-badge">Claude AI</span>
+      </div>
+      <div class="ai-body" id="ai-body">
+        <div class="ai-loading"><div class="ai-dots"><span></span><span></span><span></span></div>分析中，請稍候…</div>
       </div>
     </div>
 
@@ -608,6 +634,8 @@ async function selectSlot(slot,uid){
     }
   }
 
+  // 重置 AI 卡片
+  document.getElementById('ai-card').style.display='none';
   // 重置截圖區
   pendingImgs={fb:[],th:[]};
   renderPendingImgs('fb'); renderPendingImgs('th');
@@ -652,6 +680,95 @@ window.submitSlot = async function(){
   setTimeout(()=>ok.style.display='none',2500);
   renderSlotTabs(user.id);
   document.getElementById('done-banner').style.display='block';
+  // Get previous slot data for comparison
+  const slotIdx=SLOTS.indexOf(CUR_SLOT);
+  let prevRec=null;
+  for(let i=slotIdx-1;i>=0;i--){
+    prevRec=await getRec(today(),user.id,SLOTS[i]);
+    if(prevRec) break;
+  }
+  analyzeWithAI(data, prevRec?prevRec.data:null, CUR_SLOT, user.name);
+}
+
+async function analyzeWithAI(data, prevData, slot, userName){
+  const card=document.getElementById('ai-card');
+  const body=document.getElementById('ai-body');
+  card.style.display='block';
+  body.innerHTML='<div class="ai-loading"><div class="ai-dots"><span></span><span></span><span></span></div>AI 分析中，請稍候…</div>';
+  card.scrollIntoView({behavior:'smooth',block:'nearest'});
+
+  // Build context for AI
+  const diff = prevData ? {
+    lineAdd: data.line - prevData.line,
+    invalidAdd: data.invalid - prevData.invalid,
+    underAdd: data.under - prevData.under,
+    rejectAdd: data.reject - prevData.reject,
+    guideAdd: data.guide - prevData.guide,
+    openAdd: data.open - prevData.open,
+    clientsAdd: data.clients - prevData.clients,
+    monthlyAdd: data.monthly - prevData.monthly,
+  } : null;
+
+  const prompt = `你是一個業務數據分析師，專門分析社群媒體引流和銷售轉化數據。
+請用繁體中文分析以下 ${slot} 時段的業務數據，給出診斷和建議。
+
+【本時段新增數據】
+- 新增FB社團：${data.fbGroup} 個
+- 新增FB發文：${data.fbPost} 篇
+- 新增Threads貼文：${data.threads} 篇
+- 引流LINE：${data.line} 人（累計）
+- 無效詢問：${data.invalid} 人（累計）
+- 未滿：${data.under} 人（累計）
+- 拒絕：${data.reject} 人（累計）
+- 引導二線：${data.guide} 人（累計）
+- 成功開戶：${data.open} 人（累計）
+- 有效客戶數：${data.clients} 人
+- 有效月支數：${data.monthly}
+
+${diff ? `【本時段新增變化（與上一時段相比）】
+- LINE新增：+${diff.lineAdd} 人
+- 無效詢問新增：+${diff.invalidAdd} 人
+- 引導二線新增：+${diff.guideAdd} 人
+- 成功開戶新增：+${diff.openAdd} 人` : '（這是今天第一個時段）'}
+
+請做到：
+1. 找出數據中的異常或值得注意的地方（例如：發文多但引流少、引導多但開戶少等）
+2. 用 ⚠️ 標示警告、✅ 標示正常、💡 標示建議
+3. 分析要具體，說明可能的原因
+4. 最後給1-2個下一時段的改善建議
+5. 回覆要簡潔，不超過200字，不要用markdown標題符號(#)`;
+
+  try{
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:600,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const json = await res.json();
+    if(json.content && json.content[0]){
+      const text = json.content[0].text;
+      // Format output
+      let html = text
+        .replace(/⚠️([^
+]+)/g,'<span class="warn">⚠️$1</span>')
+        .replace(/✅([^
+]+)/g,'<span class="good">✅$1</span>')
+        .replace(/💡([^
+]+)/g,'<span class="tip">💡$1</span>')
+        .replace(/
+/g,'<br>');
+      body.innerHTML = html;
+    } else {
+      body.innerHTML = '<span class="tip">💡 數據已儲存，AI 分析暫時無法取得，請繼續保持努力！</span>';
+    }
+  }catch(e){
+    console.error('AI error:',e);
+    body.innerHTML = '<span class="tip">💡 數據已儲存成功！AI 分析功能需要網路連線。</span>';
+  }
 }
 
 // ── SCREENSHOTS ──
