@@ -1474,26 +1474,29 @@ async function renderClientList(uid){
     const log=await fbGet(clientLogPath(uid,c.id,today));
     const kicked=c.status==='kicked';
     const cardBorder=kicked?'var(--line)':rule.color;
-    const cardOpacity=kicked?'.5':'1';
+    const cardOpacity=kicked?'0.5':'1';
+    const statusBadge=log
+      ?'<span style="font-size:11px;color:var(--green)">✅ 今日已記錄</span>'
+      :'<span style="font-size:11px;color:var(--amber)">⏳ 待記錄</span>';
+    const kickedBadge=kicked?'<span style="font-size:11px;color:var(--red);background:rgba(244,96,96,.1);border-radius:4px;padding:1px 7px">已踢出</span>':'';
+    const logStatus=log&&log.status?('<div style="font-size:12px;color:var(--text);margin-top:5px;background:var(--bg3);border-radius:6px;padding:6px 10px">'+log.status+'</div>'):'';
+    const recordBtn=kicked?'':'<button onclick="openLogModal(''+c.id+'',''+c.name.replace(/'/g,"\'")+'','+days+',''+uid+'')" style="background:rgba(79,142,247,.12);border:1px solid var(--accent);color:var(--accent);border-radius:6px;padding:4px 11px;cursor:pointer;font-size:12px">📝 記錄</button>';
+    const kickBtn='<button onclick="toggleKickClient(''+uid+'',''+c.id+'',''+(kicked?'true':'false')+'')" style="background:transparent;border:1px solid var(--line2);color:var(--muted);border-radius:6px;padding:4px 11px;cursor:pointer;font-size:12px">'+(kicked?'恢復':'踢出')+'</button>';
     html+='<div style="background:var(--bg2);border:1px solid '+cardBorder+';border-radius:12px;padding:14px 16px;opacity:'+cardOpacity+'">'
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap">
-        <div style="flex:1">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
-            <span style="font-weight:600;font-size:15px">${c.name}</span>
-            <span style="font-size:11px;color:var(--muted);font-family:var(--mono)">#${c.id}</span>
-            <span style="font-size:11px;background:rgba(255,255,255,.06);border-radius:4px;padding:1px 7px;color:${rule.color}">第 ${days} 天</span>
-            ${kicked?'<span style="font-size:11px;color:var(--red);background:rgba(244,96,96,.1);border-radius:4px;padding:1px 7px">已踢出</span>':''}
-            ${log?'<span style="font-size:11px;color:var(--green)">✅ 今日已記錄</span>':'<span style="font-size:11px;color:var(--amber)">⏳ 待記錄</span>'}
-          </div>
-          <div style="font-size:11px;color:var(--muted)">進群：${c.joinDate} ｜ ${rule.label}</div>
-          ${log&&log.status?`<div style="font-size:12px;color:var(--text);margin-top:5px;background:var(--bg3);border-radius:6px;padding:6px 10px">${log.status}</div>`:''}
-        </div>
-        <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap">
-          ${!kicked?`<button onclick="openLogModal('${c.id}','${c.name}',${days},'${uid}')" style="background:rgba(79,142,247,.12);border:1px solid var(--accent);color:var(--accent);border-radius:6px;padding:4px 11px;cursor:pointer;font-size:12px">📝 記錄</button>`:''}
-          <button onclick="toggleKickClient('${uid}','${c.id}','${!kicked}')" style="background:transparent;border:1px solid var(--line2);color:var(--muted);border-radius:6px;padding:4px 11px;cursor:pointer;font-size:12px">${kicked?'恢復':'踢出'}</button>
-        </div>
-      </div>
-    </div>`;
+      +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap">'
+      +'<div style="flex:1">'
+      +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">'
+      +'<span style="font-weight:600;font-size:15px">'+c.name+'</span>'
+      +'<span style="font-size:11px;color:var(--muted);font-family:var(--mono)">#'+c.id+'</span>'
+      +'<span style="font-size:11px;background:rgba(255,255,255,.06);border-radius:4px;padding:1px 7px;color:'+rule.color+'">第 '+days+' 天</span>'
+      +kickedBadge+statusBadge
+      +'</div>'
+      +'<div style="font-size:11px;color:var(--muted)">進群：'+c.joinDate+' ｜ '+rule.label+'</div>'
+      +logStatus
+      +'</div>'
+      +'<div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap">'+recordBtn+kickBtn+'</div>'
+      +'</div>'
+      +'</div>';
   }
   el.innerHTML=html;
 }
