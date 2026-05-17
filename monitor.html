@@ -2,839 +2,560 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>數據監控系統</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DataPulse 數據監控</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #0d0f14;
-  --bg2: #141720;
-  --bg3: #1c2030;
-  --bg4: #232840;
-  --line: #2a3050;
-  --line2: #3a4468;
-  --text: #e8eaf2;
-  --muted: #7a84a8;
-  --dim: #3d4566;
-  --accent: #4f8ef7;
-  --accent2: #7b6ef6;
-  --green: #3dd68c;
-  --amber: #f4b942;
-  --red: #f46060;
-  --cyan: #3dcfcf;
-  --font: 'Noto Sans TC', sans-serif;
-  --mono: 'DM Mono', monospace;
+:root{
+  --bg:#0d0f14;--bg2:#141720;--bg3:#1c2030;
+  --line:#2a3050;--line2:#3a4468;
+  --text:#e8eaf2;--muted:#7a84a8;--dim:#3d4566;
+  --accent:#4f8ef7;--green:#3dd68c;--amber:#f4b942;--red:#f46060;--cyan:#3dcfcf;--purple:#a78bfa;
+  --font:'Noto Sans TC',sans-serif;--mono:'DM Mono',monospace;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; min-height: 100vh; }
-input, select, button { font-family: var(--font); font-size: 14px; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;min-height:100vh}
+input,select,button{font-family:var(--font);font-size:14px}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--dim);border-radius:2px}
+.page{display:none;min-height:100vh;flex-direction:column}
+.page.on{display:flex}
 
-/* ── Scrollbar ── */
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: var(--bg2); }
-::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 2px; }
+#pg-login{align-items:center;justify-content:center;position:relative;overflow:hidden}
+#pg-login::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(79,142,247,.1) 0%,transparent 70%);top:-150px;left:-150px;pointer-events:none}
+#pg-login::after{content:'';position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(167,139,250,.08) 0%,transparent 70%);bottom:-80px;right:-80px;pointer-events:none}
+.lbox{background:var(--bg2);border:1px solid var(--line2);border-radius:16px;padding:40px 44px;width:380px;position:relative;z-index:1;animation:fadeUp .35s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.logo{display:flex;align-items:center;gap:10px;margin-bottom:26px}
+.logo-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+.logo-name{font-size:17px;font-weight:700;letter-spacing:.04em}
+.logo-tag{font-size:11px;color:var(--muted);background:var(--bg3);border:1px solid var(--line);border-radius:4px;padding:2px 7px;font-family:var(--mono)}
+.ltitle{font-size:22px;font-weight:700;margin-bottom:6px}
+.lsub{font-size:13px;color:var(--muted);margin-bottom:26px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;color:var(--muted);margin-bottom:5px;letter-spacing:.06em;text-transform:uppercase}
+.field input{width:100%;background:var(--bg3);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:10px 14px;outline:none;transition:border-color .2s}
+.field input:focus{border-color:var(--accent)}
+.btn-p{width:100%;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:12px;font-weight:700;font-size:14px;cursor:pointer;margin-top:6px;transition:opacity .2s,transform .1s;letter-spacing:.04em}
+.btn-p:hover{opacity:.85}.btn-p:active{transform:scale(.98)}.btn-p:disabled{opacity:.4;cursor:not-allowed}
+.lerr{color:var(--red);font-size:12px;margin-top:8px;display:none}
+.admin-link{text-align:center;margin-top:16px}
+.admin-link a{color:var(--muted);font-size:12px;text-decoration:none;border-bottom:1px dashed var(--dim);cursor:pointer}
+.admin-link a:hover{color:var(--text)}
 
-/* ── Pages ── */
-.page { display: none; min-height: 100vh; }
-.page.active { display: flex; flex-direction: column; }
+.nav{background:var(--bg2);border-bottom:1px solid var(--line);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;flex-shrink:0}
+.nav-l{display:flex;align-items:center;gap:12px}
+.nav-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+.nav-title{font-weight:700;font-size:15px}
+.nav-chip{font-size:11px;color:var(--muted);background:var(--bg3);border:1px solid var(--line);border-radius:6px;padding:3px 9px;font-family:var(--mono)}
+.nav-r{display:flex;align-items:center;gap:8px}
+.btn-sm{background:transparent;border:1px solid var(--line2);color:var(--muted);border-radius:6px;padding:5px 11px;cursor:pointer;font-size:12px;transition:all .2s}
+.btn-sm:hover{border-color:var(--accent);color:var(--accent)}
 
-/* ══════════════════════════════════════
-   LOGIN PAGE
-══════════════════════════════════════ */
-#page-login {
-  align-items: center;
-  justify-content: center;
-  background: var(--bg);
-  position: relative;
-  overflow: hidden;
-}
-#page-login::before {
-  content: '';
-  position: absolute;
-  width: 500px; height: 500px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(79,142,247,.12) 0%, transparent 70%);
-  top: -100px; left: -100px;
-  pointer-events: none;
-}
-#page-login::after {
-  content: '';
-  position: absolute;
-  width: 400px; height: 400px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(123,110,246,.10) 0%, transparent 70%);
-  bottom: -80px; right: -80px;
-  pointer-events: none;
-}
-.login-box {
-  background: var(--bg2);
-  border: 1px solid var(--line2);
-  border-radius: 16px;
-  padding: 40px 44px;
-  width: 380px;
-  position: relative;
-  z-index: 1;
-}
-.login-logo {
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 28px;
-}
-.login-logo .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
-.login-logo span { font-size: 17px; font-weight: 700; letter-spacing: .04em; color: var(--text); }
-.login-logo .tag { font-size: 11px; color: var(--muted); background: var(--bg3); border: 1px solid var(--line); border-radius: 4px; padding: 2px 7px; margin-left: 4px; font-family: var(--mono); }
-.login-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
-.login-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
-.field { margin-bottom: 16px; }
-.field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; letter-spacing: .04em; }
-.field input, .field select {
-  width: 100%;
-  background: var(--bg3);
-  border: 1px solid var(--line2);
-  color: var(--text);
-  border-radius: 8px;
-  padding: 10px 14px;
-  outline: none;
-  transition: border-color .2s;
-}
-.field input:focus, .field select:focus { border-color: var(--accent); }
-.btn-primary {
-  width: 100%;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 12px;
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-  margin-top: 8px;
-  transition: opacity .2s, transform .1s;
-  letter-spacing: .04em;
-}
-.btn-primary:hover { opacity: .88; }
-.btn-primary:active { transform: scale(.98); }
-.login-err { color: var(--red); font-size: 12px; margin-top: 8px; display: none; }
-.admin-link { text-align: center; margin-top: 20px; }
-.admin-link a { color: var(--muted); font-size: 12px; text-decoration: none; border-bottom: 1px dashed var(--dim); cursor: pointer; }
-.admin-link a:hover { color: var(--text); }
+.rbody{flex:1;padding:20px;max-width:700px;margin:0 auto;width:100%}
+.sec-label{font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;font-family:var(--mono)}
+.slot-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.stab{background:var(--bg3);border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px;font-family:var(--mono);transition:all .2s;position:relative}
+.stab:hover{border-color:var(--line2);color:var(--text)}
+.stab.on{border-color:var(--accent);color:var(--accent);background:rgba(79,142,247,.08)}
+.stab.done::after{content:'';position:absolute;top:5px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)}
+.fcard{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:14px}
+.fslabel{font-size:11px;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;font-family:var(--mono);margin-bottom:11px;padding-bottom:7px;border-bottom:1px solid var(--line)}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:18px}
+.ffield label{display:block;font-size:11px;color:var(--muted);margin-bottom:4px}
+.ffield input{width:100%;background:var(--bg3);border:1px solid var(--line2);color:var(--text);border-radius:7px;padding:8px 10px;outline:none;font-family:var(--mono);font-size:17px;text-align:center;transition:border-color .2s}
+.ffield input:focus{border-color:var(--accent)}
+.sub-row{display:flex;align-items:center;gap:10px;margin-top:6px}
+.btn-sub{flex:1;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:11px;font-weight:700;cursor:pointer;font-size:14px;transition:opacity .2s}
+.btn-sub:hover{opacity:.85}.btn-sub:disabled{opacity:.4;cursor:not-allowed}
+.ok-msg{color:var(--green);font-size:13px;display:none}
+.done-banner{background:rgba(61,214,140,.07);border:1px solid rgba(61,214,140,.25);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--green);margin-bottom:14px;display:none}
+.sync-bar{font-size:11px;color:var(--dim);font-family:var(--mono);margin-bottom:12px}
 
-/* ══════════════════════════════════════
-   REPORT PAGE
-══════════════════════════════════════ */
-.nav {
-  background: var(--bg2);
-  border-bottom: 1px solid var(--line);
-  padding: 0 24px;
-  display: flex; align-items: center; justify-content: space-between;
-  height: 52px; flex-shrink: 0;
-}
-.nav-left { display: flex; align-items: center; gap: 14px; }
-.nav-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); flex-shrink: 0; }
-.nav-title { font-weight: 700; font-size: 15px; }
-.nav-user { font-size: 12px; color: var(--muted); background: var(--bg3); border: 1px solid var(--line); border-radius: 6px; padding: 3px 10px; font-family: var(--mono); }
-.nav-right { display: flex; align-items: center; gap: 10px; }
-.btn-sm {
-  background: transparent; border: 1px solid var(--line2);
-  color: var(--muted); border-radius: 6px; padding: 5px 12px;
-  cursor: pointer; font-size: 12px; transition: all .2s;
-}
-.btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+.alayout{display:flex;flex:1;min-height:0;overflow:hidden}
+.aside{width:210px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--line);padding:18px 0;overflow-y:auto}
+.aside-lbl{font-size:10px;color:var(--dim);letter-spacing:.1em;padding:0 14px;margin-bottom:7px;text-transform:uppercase;font-family:var(--mono)}
+.aside-item{display:flex;align-items:center;gap:8px;padding:8px 14px;cursor:pointer;color:var(--muted);font-size:13px;transition:all .2s;border-left:2px solid transparent}
+.aside-item:hover{color:var(--text);background:var(--bg3)}
+.aside-item.on{color:var(--accent);border-left-color:var(--accent);background:rgba(79,142,247,.05)}
+.aside-item .d{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.acontent{flex:1;overflow-y:auto;padding:22px}
 
-.report-body { flex: 1; padding: 24px; max-width: 700px; margin: 0 auto; width: 100%; }
-.section-head {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 16px;
-}
-.section-title { font-size: 13px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+.fbar{display:flex;gap:8px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
+.fbar input,.fbar select{background:var(--bg2);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:7px 11px;outline:none;font-size:13px}
+.fbar select option{background:var(--bg2)}
 
-.slot-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
-.slot-tab {
-  background: var(--bg3); border: 1px solid var(--line);
-  color: var(--muted); border-radius: 8px; padding: 6px 14px;
-  cursor: pointer; font-size: 13px; font-family: var(--mono);
-  transition: all .2s; position: relative;
-}
-.slot-tab:hover { border-color: var(--line2); color: var(--text); }
-.slot-tab.active { border-color: var(--accent); color: var(--accent); background: rgba(79,142,247,.08); }
-.slot-tab.done::after {
-  content: '';
-  position: absolute; top: 5px; right: 6px;
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--green); box-shadow: 0 0 6px var(--green);
-}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:9px;margin-bottom:18px}
+.scard{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:13px 15px}
+.sl{font-size:11px;color:var(--muted);margin-bottom:3px}
+.sv{font-size:24px;font-weight:700;font-family:var(--mono)}
+.sv.blue{color:var(--accent)}.sv.green{color:var(--green)}.sv.amber{color:var(--amber)}.sv.red{color:var(--red)}.sv.cyan{color:var(--cyan)}.sv.purple{color:var(--purple)}
 
-.form-card {
-  background: var(--bg2); border: 1px solid var(--line);
-  border-radius: 14px; padding: 24px; margin-bottom: 16px;
-}
-.form-section-label {
-  font-size: 11px; color: var(--accent); letter-spacing: .1em;
-  text-transform: uppercase; font-family: var(--mono);
-  margin-bottom: 12px; padding-bottom: 8px;
-  border-bottom: 1px solid var(--line);
-}
-.form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
-.form-field label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 5px; }
-.form-field input {
-  width: 100%; background: var(--bg3); border: 1px solid var(--line2);
-  color: var(--text); border-radius: 7px; padding: 8px 12px;
-  outline: none; font-family: var(--mono); font-size: 16px;
-  transition: border-color .2s; text-align: center;
-}
-.form-field input:focus { border-color: var(--accent); }
-.submit-row { display: flex; align-items: center; gap: 12px; }
-.btn-submit {
-  flex: 1; background: var(--accent); color: #fff;
-  border: none; border-radius: 8px; padding: 11px;
-  font-weight: 700; cursor: pointer; font-size: 14px;
-  transition: opacity .2s; letter-spacing: .04em;
-}
-.btn-submit:hover { opacity: .85; }
-.submit-ok { color: var(--green); font-size: 13px; display: none; }
-.already-msg { background: rgba(61,214,140,.07); border: 1px solid rgba(61,214,140,.25); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--green); display: none; margin-bottom: 16px; }
+.dtw{background:var(--bg2);border:1px solid var(--line);border-radius:12px;overflow:hidden;overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:860px}
+thead th{background:var(--bg3);padding:9px 11px;font-size:11px;color:var(--muted);text-align:left;letter-spacing:.05em;font-family:var(--mono);border-bottom:1px solid var(--line);white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--line);transition:background .15s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--bg3)}
+tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
+.tdm{font-family:var(--mono);font-size:12px}
+.bslot{background:rgba(79,142,247,.12);color:var(--accent);border:1px solid rgba(79,142,247,.2);border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:11px}
+.empty{text-align:center;padding:40px;color:var(--dim)}
 
-/* ══════════════════════════════════════
-   ADMIN PAGE
-══════════════════════════════════════ */
-.admin-layout { display: flex; flex: 1; min-height: 0; }
-.admin-sidebar {
-  width: 220px; flex-shrink: 0;
-  background: var(--bg2); border-right: 1px solid var(--line);
-  padding: 20px 0;
-}
-.sidebar-section { margin-bottom: 24px; }
-.sidebar-label { font-size: 10px; color: var(--dim); letter-spacing: .1em; padding: 0 16px; margin-bottom: 8px; text-transform: uppercase; font-family: var(--mono); }
-.sidebar-item {
-  display: flex; align-items: center; gap: 8px;
-  padding: 8px 16px; cursor: pointer;
-  color: var(--muted); font-size: 13px; transition: all .2s;
-  border-left: 2px solid transparent;
-}
-.sidebar-item:hover { color: var(--text); background: var(--bg3); }
-.sidebar-item.active { color: var(--accent); border-left-color: var(--accent); background: rgba(79,142,247,.05); }
-.sidebar-item .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.fnl-wrap{display:flex;flex-direction:column;gap:8px}
+.fnl-row{display:flex;align-items:center;gap:10px}
+.fnl-lbl{font-size:12px;color:var(--muted);width:80px;text-align:right;flex-shrink:0}
+.fnl-bw{flex:1;height:7px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.fnl-b{height:100%;border-radius:4px;transition:width .6s ease}
+.fnl-n{font-size:13px;font-family:var(--mono);font-weight:500;width:32px}
 
-.admin-content { flex: 1; overflow-y: auto; padding: 24px; }
+.sccard{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:14px}
+.sccard-t{font-size:12px;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-bottom:14px;font-family:var(--mono)}
 
-.filter-bar {
-  display: flex; gap: 10px; align-items: center;
-  margin-bottom: 20px; flex-wrap: wrap;
-}
-.filter-bar input, .filter-bar select {
-  background: var(--bg2); border: 1px solid var(--line2);
-  color: var(--text); border-radius: 8px; padding: 8px 12px;
-  outline: none; font-size: 13px; transition: border-color .2s;
-}
-.filter-bar input:focus, .filter-bar select:focus { border-color: var(--accent); }
-.filter-bar select option { background: var(--bg2); }
+.ulist{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
+.urow{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px 15px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.uname{font-weight:500;font-size:14px}
+.uid-pw{font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:2px}
+.urow-actions{display:flex;gap:6px;flex-shrink:0}
+.btn-del{background:transparent;border:1px solid var(--line2);color:var(--red);border-radius:6px;padding:4px 11px;cursor:pointer;font-size:12px;transition:all .2s}
+.btn-del:hover{background:rgba(244,96,96,.1);border-color:var(--red)}
+.btn-edit{background:transparent;border:1px solid var(--line2);color:var(--muted);border-radius:6px;padding:4px 11px;cursor:pointer;font-size:12px;transition:all .2s}
+.btn-edit:hover{border-color:var(--accent);color:var(--accent)}
+.add-form{background:var(--bg2);border:1px dashed var(--line2);border-radius:10px;padding:15px}
+.btn-add{background:rgba(61,214,140,.1);border:1px solid rgba(61,214,140,.3);color:var(--green);border-radius:7px;padding:7px 16px;cursor:pointer;font-size:13px;font-weight:500}
+.btn-add:hover{background:rgba(61,214,140,.18)}
+.imsg{font-size:12px;margin-left:10px;display:none}
 
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-bottom: 20px; }
-.stat-card {
-  background: var(--bg2); border: 1px solid var(--line);
-  border-radius: 10px; padding: 14px 16px;
-}
-.stat-card .sc-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
-.stat-card .sc-val { font-size: 24px; font-weight: 700; font-family: var(--mono); }
-.sc-val.blue { color: var(--accent); }
-.sc-val.green { color: var(--green); }
-.sc-val.amber { color: var(--amber); }
-.sc-val.red { color: var(--red); }
-.sc-val.cyan { color: var(--cyan); }
-
-.data-table-wrap { background: var(--bg2); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
-table { width: 100%; border-collapse: collapse; }
-thead th {
-  background: var(--bg3); padding: 10px 12px;
-  font-size: 11px; color: var(--muted); text-align: left;
-  letter-spacing: .05em; font-family: var(--mono);
-  border-bottom: 1px solid var(--line);
-  white-space: nowrap;
-}
-tbody tr { border-bottom: 1px solid var(--line); transition: background .15s; }
-tbody tr:last-child { border-bottom: none; }
-tbody tr:hover { background: var(--bg3); }
-tbody td { padding: 9px 12px; font-size: 13px; color: var(--text); white-space: nowrap; }
-.td-mono { font-family: var(--mono); font-size: 12px; }
-.td-name { font-weight: 500; }
-.td-time { color: var(--accent); font-family: var(--mono); font-size: 12px; }
-.badge-slot { background: rgba(79,142,247,.12); color: var(--accent); border: 1px solid rgba(79,142,247,.25); border-radius: 5px; padding: 2px 8px; font-family: var(--mono); font-size: 11px; }
-.empty-state { text-align: center; padding: 48px 24px; color: var(--dim); font-size: 14px; }
-
-/* ── Admin Login ── */
-.admin-login-wrap {
-  min-height: 100vh; display: flex; align-items: center; justify-content: center;
-  background: var(--bg);
-}
-
-/* ── User Management ── */
-.user-list { display: flex; flex-direction: column; gap: 8px; }
-.user-row {
-  background: var(--bg2); border: 1px solid var(--line);
-  border-radius: 10px; padding: 12px 16px;
-  display: flex; align-items: center; justify-content: space-between;
-}
-.user-info .u-name { font-weight: 500; }
-.user-info .u-id { font-size: 11px; color: var(--muted); font-family: var(--mono); }
-.btn-del { background: transparent; border: 1px solid var(--line2); color: var(--red); border-radius: 6px; padding: 4px 12px; cursor: pointer; font-size: 12px; transition: all .2s; }
-.btn-del:hover { background: rgba(244,96,96,.1); border-color: var(--red); }
-.add-user-form { background: var(--bg2); border: 1px dashed var(--line2); border-radius: 10px; padding: 16px; margin-top: 12px; }
-.add-user-form .form-grid { margin-bottom: 12px; }
-.btn-add { background: rgba(61,214,140,.1); border: 1px solid rgba(61,214,140,.3); color: var(--green); border-radius: 7px; padding: 8px 18px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all .2s; }
-.btn-add:hover { background: rgba(61,214,140,.18); }
-
-/* ── Funnel ── */
-.funnel-wrap { display: flex; flex-direction: column; gap: 8px; }
-.funnel-row { display: flex; align-items: center; gap: 12px; }
-.funnel-label { font-size: 12px; color: var(--muted); width: 90px; text-align: right; flex-shrink: 0; }
-.funnel-bar-wrap { flex: 1; height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
-.funnel-bar { height: 100%; border-radius: 4px; transition: width .5s ease; }
-.funnel-num { font-size: 13px; font-family: var(--mono); font-weight: 500; width: 36px; }
-
-.section-card { background: var(--bg2); border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
-.section-card-title { font-size: 13px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 16px; font-family: var(--mono); }
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;z-index:100}
+.modal-bg.on{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--line2);border-radius:14px;padding:28px 32px;width:340px;animation:fadeUp .25s ease}
+.modal h3{font-size:16px;font-weight:600;margin-bottom:18px}
+.modal-actions{display:flex;gap:8px;margin-top:18px}
+.btn-cancel{flex:1;background:transparent;border:1px solid var(--line2);color:var(--muted);border-radius:8px;padding:10px;cursor:pointer;font-size:13px}
+.btn-cancel:hover{border-color:var(--text);color:var(--text)}
+.btn-save{flex:1;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px;cursor:pointer;font-size:13px;font-weight:600}
+.btn-save:hover{opacity:.85}
 </style>
 </head>
 <body>
 
-<!-- ══════════ LOGIN ══════════ -->
-<div id="page-login" class="page active">
-  <div class="login-box">
-    <div class="login-logo">
-      <div class="dot"></div>
-      <span>DataPulse</span>
-      <span class="tag">v1.0</span>
-    </div>
-    <div class="login-title">人員登入</div>
-    <div class="login-sub">請輸入您的員工編號與密碼</div>
-    <div class="field"><label>員工編號</label><input id="login-id" type="text" placeholder="例：EMP001" autocomplete="off"></div>
-    <div class="field"><label>密碼</label><input id="login-pw" type="password" placeholder="••••••"></div>
-    <button class="btn-primary" onclick="doLogin()">登入系統</button>
-    <div class="login-err" id="login-err">❌ 帳號或密碼錯誤，請再試一次</div>
-    <div class="admin-link"><a onclick="goAdmin()">後台管理入口 →</a></div>
+<!-- LOGIN -->
+<div id="pg-login" class="page on">
+  <div class="lbox">
+    <div class="logo"><div class="logo-dot"></div><span class="logo-name">DataPulse</span><span class="logo-tag">v1.0</span></div>
+    <div class="ltitle">人員登入</div>
+    <div class="lsub">請輸入您的員工編號與密碼</div>
+    <div class="field"><label>員工編號</label><input id="li-id" type="text" placeholder="例：EMP001" autocomplete="off"></div>
+    <div class="field"><label>密碼</label><input id="li-pw" type="password" placeholder="••••••"></div>
+    <button class="btn-p" onclick="doLogin()">登入系統</button>
+    <div class="lerr" id="li-err">❌ 帳號或密碼錯誤</div>
+    <div class="admin-link"><a onclick="showPg('pg-admin-login')">後台管理入口 →</a></div>
   </div>
 </div>
 
-<!-- ══════════ REPORT ══════════ -->
-<div id="page-report" class="page">
+<!-- ADMIN LOGIN -->
+<div id="pg-admin-login" class="page">
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg)">
+    <div class="lbox">
+      <div class="logo"><div class="logo-dot" style="background:var(--amber);box-shadow:0 0 12px var(--amber)"></div><span class="logo-name">DataPulse</span><span class="logo-tag">ADMIN</span></div>
+      <div class="ltitle">後台管理</div>
+      <div class="lsub">請輸入管理員密碼</div>
+      <div class="field"><label>管理員密碼</label><input id="ai-pw" type="password" placeholder="••••••"></div>
+      <button class="btn-p" style="background:var(--amber);color:#1a1200" onclick="doAdminLogin()">進入後台</button>
+      <div class="lerr" id="ai-err">❌ 密碼錯誤</div>
+      <div class="admin-link"><a onclick="showPg('pg-login')">← 返回人員登入</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- REPORT -->
+<div id="pg-report" class="page">
   <nav class="nav">
-    <div class="nav-left">
-      <div class="nav-dot"></div>
-      <span class="nav-title">DataPulse</span>
-      <span class="nav-user" id="nav-user-label">—</span>
-    </div>
-    <div class="nav-right">
-      <span id="nav-date" style="font-size:12px;color:var(--muted);font-family:var(--mono)"></span>
-      <button class="btn-sm" onclick="doLogout()">登出</button>
-    </div>
+    <div class="nav-l"><div class="nav-dot"></div><span class="nav-title">DataPulse</span><span class="nav-chip" id="nv-user">—</span></div>
+    <div class="nav-r"><span id="nv-date" style="font-size:11px;color:var(--muted);font-family:var(--mono)"></span><button class="btn-sm" onclick="doLogout('staff')">登出</button></div>
   </nav>
-  <div class="report-body">
-    <div class="section-head" style="margin-bottom:12px">
-      <span class="section-title">選擇填報時段</span>
-    </div>
+  <div class="rbody">
+    <div class="sync-bar" id="sync-bar">載入中…</div>
+    <div class="sec-label" style="margin-bottom:9px">選擇填報時段</div>
     <div class="slot-tabs" id="slot-tabs"></div>
-    <div id="already-msg" class="already-msg">✅ 此時段已完成填報，如需修改請重新提交</div>
-    <div class="form-card">
-      <div class="form-section-label">📣 FB 推廣</div>
-      <div class="form-grid">
-        <div class="form-field"><label>新增 FB 社團</label><input type="number" id="f-fb-group" min="0" value="0"></div>
-        <div class="form-field"><label>新增 FB 發文</label><input type="number" id="f-fb-post" min="0" value="0"></div>
-        <div class="form-field"><label>新增 Threads 貼文</label><input type="number" id="f-threads" min="0" value="0"></div>
+    <div class="done-banner" id="done-banner">✅ 此時段已完成填報，重新提交即可覆蓋</div>
+    <div class="fcard">
+      <div class="fslabel">📣 FB 推廣</div>
+      <div class="fgrid">
+        <div class="ffield"><label>新增 FB 社團</label><input type="number" id="f0" min="0" value="0"></div>
+        <div class="ffield"><label>新增 FB 發文</label><input type="number" id="f1" min="0" value="0"></div>
+        <div class="ffield"><label>新增 Threads 貼文</label><input type="number" id="f2" min="0" value="0"></div>
       </div>
-      <div class="form-section-label">📲 引流 & 詢問</div>
-      <div class="form-grid">
-        <div class="form-field"><label>引流 LINE</label><input type="number" id="f-line" min="0" value="0"></div>
-        <div class="form-field"><label>無效詢問總數</label><input type="number" id="f-invalid" min="0" value="0"></div>
-        <div class="form-field"><label>未滿</label><input type="number" id="f-under" min="0" value="0"></div>
+      <div class="fslabel">📲 引流 &amp; 詢問</div>
+      <div class="fgrid">
+        <div class="ffield"><label>引流 LINE</label><input type="number" id="f3" min="0" value="0"></div>
+        <div class="ffield"><label>無效詢問總數</label><input type="number" id="f4" min="0" value="0"></div>
+        <div class="ffield"><label>未滿</label><input type="number" id="f5" min="0" value="0"></div>
       </div>
-      <div class="form-section-label">💼 成交結果</div>
-      <div class="form-grid">
-        <div class="form-field"><label>拒絕</label><input type="number" id="f-reject" min="0" value="0"></div>
-        <div class="form-field"><label>引導二線</label><input type="number" id="f-guide" min="0" value="0"></div>
-        <div class="form-field"><label>成功開戶</label><input type="number" id="f-open" min="0" value="0"></div>
+      <div class="fslabel">💼 成交結果</div>
+      <div class="fgrid">
+        <div class="ffield"><label>拒絕</label><input type="number" id="f6" min="0" value="0"></div>
+        <div class="ffield"><label>引導二線</label><input type="number" id="f7" min="0" value="0"></div>
+        <div class="ffield"><label>成功開戶</label><input type="number" id="f8" min="0" value="0"></div>
       </div>
-      <div class="form-section-label">📊 H版數據</div>
-      <div class="form-grid">
-        <div class="form-field"><label>有效客戶數</label><input type="number" id="f-clients" min="0" value="0"></div>
-        <div class="form-field"><label>有效月支數</label><input type="number" id="f-monthly" min="0" value="0"></div>
+      <div class="fslabel">📊 H版數據</div>
+      <div class="fgrid">
+        <div class="ffield"><label>有效客戶數</label><input type="number" id="f9" min="0" value="0"></div>
+        <div class="ffield"><label>有效月支數</label><input type="number" id="f10" min="0" value="0"></div>
       </div>
-      <div class="submit-row">
-        <button class="btn-submit" onclick="submitSlot()">✓ 提交此時段數據</button>
-        <span class="submit-ok" id="submit-ok">✅ 已儲存！</span>
+      <div class="sub-row">
+        <button class="btn-sub" id="sub-btn" onclick="submitSlot()">✓ 提交此時段數據</button>
+        <span class="ok-msg" id="ok-msg">✅ 已儲存！</span>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══════════ ADMIN LOGIN ══════════ -->
-<div id="page-admin-login" class="page">
-  <div class="admin-login-wrap">
-    <div class="login-box">
-      <div class="login-logo">
-        <div class="dot" style="background:var(--amber);box-shadow:0 0 10px var(--amber)"></div>
-        <span>DataPulse</span>
-        <span class="tag">ADMIN</span>
-      </div>
-      <div class="login-title">後台管理</div>
-      <div class="login-sub">請輸入管理員密碼</div>
-      <div class="field"><label>管理員密碼</label><input id="admin-pw" type="password" placeholder="••••••" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
-      <button class="btn-primary" style="background:var(--amber);color:#1a1200" onclick="doAdminLogin()">進入後台</button>
-      <div class="login-err" id="admin-err">❌ 密碼錯誤</div>
-      <div class="admin-link"><a onclick="showPage('page-login')">← 返回人員登入</a></div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════ ADMIN DASHBOARD ══════════ -->
-<div id="page-admin" class="page">
+<!-- ADMIN -->
+<div id="pg-admin" class="page">
   <nav class="nav">
-    <div class="nav-left">
-      <div class="nav-dot" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></div>
-      <span class="nav-title">DataPulse</span>
-      <span class="nav-user" style="border-color:rgba(244,185,66,.3);color:var(--amber)">ADMIN</span>
-    </div>
-    <div class="nav-right">
-      <button class="btn-sm" onclick="doLogout()">登出</button>
+    <div class="nav-l"><div class="nav-dot" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></div><span class="nav-title">DataPulse</span><span class="nav-chip" style="border-color:rgba(244,185,66,.3);color:var(--amber)">ADMIN</span></div>
+    <div class="nav-r">
+      <button class="btn-sm" onclick="refreshAdmin()" style="font-family:var(--mono)">⟳ 重新整理</button>
+      <button class="btn-sm" onclick="doLogout('admin')">登出</button>
     </div>
   </nav>
-  <div class="admin-layout">
-    <div class="admin-sidebar">
-      <div class="sidebar-section">
-        <div class="sidebar-label">功能</div>
-        <div class="sidebar-item active" onclick="adminTab('overview',this)"><span class="dot" style="background:var(--accent)"></span> 數據總覽</div>
-        <div class="sidebar-item" onclick="adminTab('detail',this)"><span class="dot" style="background:var(--cyan)"></span> 明細查詢</div>
-        <div class="sidebar-item" onclick="adminTab('users',this)"><span class="dot" style="background:var(--green)"></span> 人員管理</div>
-      </div>
+  <div class="alayout">
+    <div class="aside">
+      <div class="aside-lbl">功能</div>
+      <div class="aside-item on" onclick="aTab('ov',this)"><span class="d" style="background:var(--accent)"></span>數據總覽</div>
+      <div class="aside-item" onclick="aTab('dt',this)"><span class="d" style="background:var(--cyan)"></span>明細查詢</div>
+      <div class="aside-item" onclick="aTab('us',this)"><span class="d" style="background:var(--green)"></span>人員管理</div>
+      <div class="aside-item" onclick="aTab('cfg',this)"><span class="d" style="background:var(--amber)"></span>系統設定</div>
     </div>
-    <div class="admin-content">
-      <!-- Overview -->
-      <div id="tab-overview">
-        <div class="filter-bar">
-          <input type="date" id="ov-date" onchange="renderOverview()">
-          <select id="ov-slot" onchange="renderOverview()">
-            <option value="">全部時段</option>
-            <option>11:00</option><option>13:00</option><option>15:00</option>
-            <option>17:30</option><option>19:00</option><option>21:00</option>
-          </select>
-          <select id="ov-user" onchange="renderOverview()">
-            <option value="">全部人員</option>
-          </select>
+    <div class="acontent">
+      <!-- 總覽 -->
+      <div id="tab-ov">
+        <div class="fbar">
+          <input type="date" id="ov-date" onchange="renderOv()">
+          <select id="ov-slot" onchange="renderOv()"><option value="">全部時段</option><option>11:00</option><option>13:00</option><option>15:00</option><option>17:30</option><option>19:00</option><option>21:00</option></select>
+          <select id="ov-user" onchange="renderOv()"><option value="">全部人員</option></select>
         </div>
-        <div class="stats-grid" id="ov-stats"></div>
-        <div class="section-card">
-          <div class="section-card-title">轉化漏斗</div>
-          <div class="funnel-wrap" id="ov-funnel"></div>
-        </div>
-        <div class="data-table-wrap">
-          <table>
-            <thead><tr>
-              <th>日期</th><th>時段</th><th>人員</th>
-              <th>FB社團</th><th>FB發文</th><th>Threads</th>
-              <th>引流LINE</th><th>無效詢問</th><th>未滿</th>
-              <th>拒絕</th><th>引導二線</th><th>成功開戶</th>
-              <th>有效客戶</th><th>有效月支</th>
-            </tr></thead>
-            <tbody id="ov-tbody"></tbody>
-          </table>
-        </div>
+        <div class="sgrid" id="ov-stats"></div>
+        <div class="sccard"><div class="sccard-t">轉化漏斗</div><div class="fnl-wrap" id="ov-funnel"></div></div>
+        <div class="dtw"><table><thead><tr><th>日期</th><th>時段</th><th>人員</th><th>FB社團</th><th>FB發文</th><th>Threads</th><th>引流LINE</th><th>無效詢問</th><th>未滿</th><th>拒絕</th><th>引導二線</th><th>成功開戶</th><th>有效客戶</th><th>有效月支</th></tr></thead><tbody id="ov-tbody"></tbody></table></div>
       </div>
-      <!-- Detail -->
-      <div id="tab-detail" style="display:none">
-        <div class="filter-bar">
-          <input type="date" id="dt-from"> <span style="color:var(--muted);font-size:12px">至</span>
-          <input type="date" id="dt-to">
-          <select id="dt-user">
-            <option value="">全部人員</option>
-          </select>
-          <select id="dt-slot">
-            <option value="">全部時段</option>
-            <option>11:00</option><option>13:00</option><option>15:00</option>
-            <option>17:30</option><option>19:00</option><option>21:00</option>
-          </select>
-          <button class="btn-sm" onclick="renderDetail()" style="color:var(--accent);border-color:var(--accent)">查詢</button>
+      <!-- 明細 -->
+      <div id="tab-dt" style="display:none">
+        <div class="fbar">
+          <input type="date" id="dt-from"><span style="color:var(--muted);font-size:12px">至</span><input type="date" id="dt-to">
+          <select id="dt-user"><option value="">全部人員</option></select>
+          <select id="dt-slot"><option value="">全部時段</option><option>11:00</option><option>13:00</option><option>15:00</option><option>17:30</option><option>19:00</option><option>21:00</option></select>
+          <button class="btn-sm" style="color:var(--accent);border-color:var(--accent)" onclick="renderDt()">查詢</button>
         </div>
-        <div class="data-table-wrap">
-          <table>
-            <thead><tr>
-              <th>日期</th><th>時段</th><th>人員</th>
-              <th>FB社團</th><th>FB發文</th><th>Threads</th>
-              <th>引流LINE</th><th>無效詢問</th><th>未滿</th>
-              <th>拒絕</th><th>引導二線</th><th>成功開戶</th>
-              <th>有效客戶</th><th>有效月支</th>
-            </tr></thead>
-            <tbody id="dt-tbody"></tbody>
-          </table>
-        </div>
+        <div class="dtw"><table><thead><tr><th>日期</th><th>時段</th><th>人員</th><th>FB社團</th><th>FB發文</th><th>Threads</th><th>引流LINE</th><th>無效詢問</th><th>未滿</th><th>拒絕</th><th>引導二線</th><th>成功開戶</th><th>有效客戶</th><th>有效月支</th></tr></thead><tbody id="dt-tbody"></tbody></table></div>
       </div>
-      <!-- Users -->
-      <div id="tab-users" style="display:none">
-        <div class="user-list" id="user-list"></div>
-        <div class="add-user-form">
-          <div style="font-size:13px;color:var(--muted);margin-bottom:12px">新增人員帳號</div>
-          <div class="form-grid">
-            <div class="form-field"><label>姓名</label><input type="text" id="nu-name" placeholder="例：王小明"></div>
-            <div class="form-field"><label>員工編號</label><input type="text" id="nu-id" placeholder="例：EMP003"></div>
-            <div class="form-field"><label>密碼</label><input type="text" id="nu-pw" placeholder="設定密碼"></div>
+      <!-- 人員管理 -->
+      <div id="tab-us" style="display:none">
+        <div class="ulist" id="ulist"></div>
+        <div class="add-form">
+          <div style="font-size:13px;color:var(--muted);margin-bottom:11px">＋ 新增人員帳號</div>
+          <div class="fgrid" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))">
+            <div class="ffield"><label>姓名</label><input type="text" id="nu-name" placeholder="王小明" style="font-size:14px;text-align:left"></div>
+            <div class="ffield"><label>員工編號</label><input type="text" id="nu-id" placeholder="EMP003" style="font-size:14px;text-align:left;font-family:var(--mono)"></div>
+            <div class="ffield"><label>密碼</label><input type="text" id="nu-pw" placeholder="設定密碼" style="font-size:14px;text-align:left;font-family:var(--mono)"></div>
           </div>
           <button class="btn-add" onclick="addUser()">＋ 新增帳號</button>
-          <span id="add-msg" style="color:var(--green);font-size:12px;margin-left:10px;display:none"></span>
+          <span id="add-msg" class="imsg"></span>
         </div>
       </div>
+      <!-- 系統設定 -->
+      <div id="tab-cfg" style="display:none">
+        <div class="sccard">
+          <div class="sccard-t">管理員密碼</div>
+          <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+            <div class="ffield" style="flex:1;min-width:160px"><label>新密碼</label><input type="text" id="new-admin-pw" placeholder="輸入新密碼" style="font-size:14px;text-align:left;font-family:var(--mono)"></div>
+            <button class="btn-add" onclick="changeAdminPw()">儲存密碼</button>
+            <span id="pw-msg" class="imsg"></span>
+          </div>
+        </div>
+        <div class="sccard">
+          <div class="sccard-t">資料管理</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn-sm" onclick="exportData()" style="color:var(--cyan);border-color:var(--cyan)">⬇ 匯出資料 (JSON)</button>
+            <button class="btn-del" onclick="clearAllData()">⚠ 清除所有數據</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-bg" id="edit-modal">
+  <div class="modal">
+    <h3>編輯人員資料</h3>
+    <div class="field"><label>姓名</label><input type="text" id="edit-name" style="text-align:left"></div>
+    <div class="field"><label>員工編號</label><input type="text" id="edit-id" style="text-align:left;font-family:var(--mono)"></div>
+    <div class="field"><label>密碼</label><input type="text" id="edit-pw" style="text-align:left;font-family:var(--mono)"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">取消</button>
+      <button class="btn-save" onclick="saveEdit()">儲存</button>
     </div>
   </div>
 </div>
 
 <script>
-// ══════════════════════════════════════
-// STORAGE
-// ══════════════════════════════════════
-const ADMIN_PW = 'admin888';
-const SLOTS = ['11:00','13:00','15:00','17:30','19:00','21:00'];
+const SLOTS=['11:00','13:00','15:00','17:30','19:00','21:00'];
+const FKEYS=['fbGroup','fbPost','threads','line','invalid','under','reject','guide','open','clients','monthly'];
+const SK={U:'dp_users',R:'dp_records',A:'dp_admin_pw',S:'dp_session'};
+let CUR_SLOT=SLOTS[0], editIdx=-1;
 
-function getUsers() {
-  const d = localStorage.getItem('dp_users');
-  if (d) return JSON.parse(d);
-  const def = [
-    { id: 'EMP001', name: '員工A', pw: '123456' },
-    { id: 'EMP002', name: '員工B', pw: '123456' }
-  ];
-  localStorage.setItem('dp_users', JSON.stringify(def));
-  return def;
-}
-function saveUsers(u) { localStorage.setItem('dp_users', JSON.stringify(u)); }
+function today(){const n=new Date();return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`}
+function showPg(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));document.getElementById(id).classList.add('on')}
+function showMsg(el,t,c){el.textContent=t;el.style.color=c;el.style.display='inline';setTimeout(()=>el.style.display='none',3000)}
 
-function getRecords() {
-  const d = localStorage.getItem('dp_records');
-  return d ? JSON.parse(d) : [];
-}
-function saveRecords(r) { localStorage.setItem('dp_records', JSON.stringify(r)); }
+// Storage
+function getUsers(){const d=localStorage.getItem(SK.U);if(d)return JSON.parse(d);const def=[{id:'EMP001',name:'員工A',pw:'123456'},{id:'EMP002',name:'員工B',pw:'123456'}];localStorage.setItem(SK.U,JSON.stringify(def));return def}
+function saveUsers(u){localStorage.setItem(SK.U,JSON.stringify(u))}
+function getRecs(){const d=localStorage.getItem(SK.R);return d?JSON.parse(d):[]}
+function saveRecs(r){localStorage.setItem(SK.R,JSON.stringify(r))}
+function getAdminPw(){return localStorage.getItem(SK.A)||'admin888'}
+function getSession(){const d=localStorage.getItem(SK.S);return d?JSON.parse(d):null}
+function saveSession(s){localStorage.setItem(SK.S,JSON.stringify(s))}
+function clearSession(){localStorage.removeItem(SK.S)}
 
-function todayStr() {
-  const n = new Date();
-  return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
-}
-
-// ══════════════════════════════════════
-// PAGE ROUTING
-// ══════════════════════════════════════
-let currentUser = null;
-
-function showPage(id) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-
-function goAdmin() { showPage('page-admin-login'); }
-
-// ══════════════════════════════════════
-// LOGIN
-// ══════════════════════════════════════
-function doLogin() {
-  const uid = document.getElementById('login-id').value.trim();
-  const pw = document.getElementById('login-pw').value;
-  const users = getUsers();
-  const user = users.find(u => u.id === uid && u.pw === pw);
-  if (!user) {
-    document.getElementById('login-err').style.display = 'block';
-    return;
+// Auto restore on load
+window.addEventListener('DOMContentLoaded',()=>{
+  const s=getSession();
+  if(!s) return;
+  if(s.role==='admin'){initAdmin();showPg('pg-admin')}
+  else if(s.role==='staff'){
+    const u=getUsers().find(x=>x.id===s.uid);
+    if(u){initReport(u);showPg('pg-report')}else clearSession();
   }
-  document.getElementById('login-err').style.display = 'none';
-  currentUser = user;
-  initReportPage();
-  showPage('page-report');
+});
+
+// Login
+function doLogin(){
+  const uid=document.getElementById('li-id').value.trim();
+  const pw=document.getElementById('li-pw').value;
+  const user=getUsers().find(u=>u.id===uid&&u.pw===pw);
+  if(!user){document.getElementById('li-err').style.display='block';return}
+  document.getElementById('li-err').style.display='none';
+  saveSession({role:'staff',uid:user.id});
+  initReport(user);showPg('pg-report');
+}
+function doAdminLogin(){
+  const pw=document.getElementById('ai-pw').value;
+  if(pw!==getAdminPw()){document.getElementById('ai-err').style.display='block';return}
+  document.getElementById('ai-err').style.display='none';
+  saveSession({role:'admin'});initAdmin();showPg('pg-admin');
+}
+function doLogout(role){
+  clearSession();
+  if(role==='staff') document.getElementById('li-pw').value='';
+  else document.getElementById('ai-pw').value='';
+  showPg('pg-login');
 }
 
-function doAdminLogin() {
-  const pw = document.getElementById('admin-pw').value;
-  if (pw !== ADMIN_PW) {
-    document.getElementById('admin-err').style.display = 'block';
-    return;
-  }
-  document.getElementById('admin-err').style.display = 'none';
-  initAdminPage();
-  showPage('page-admin');
+// Report
+function initReport(user){
+  document.getElementById('nv-user').textContent=`${user.name} (${user.id})`;
+  document.getElementById('nv-date').textContent=today();
+  document.getElementById('sync-bar').textContent=`📡 ${today()} · 本機儲存`;
+  renderSlotTabs(user.id);
+  selectSlot(SLOTS[0],user.id);
 }
-
-function doLogout() {
-  currentUser = null;
-  document.getElementById('login-id').value = '';
-  document.getElementById('login-pw').value = '';
-  document.getElementById('admin-pw').value = '';
-  showPage('page-login');
-}
-
-// ══════════════════════════════════════
-// REPORT PAGE
-// ══════════════════════════════════════
-let currentSlot = SLOTS[0];
-
-function initReportPage() {
-  document.getElementById('nav-user-label').textContent = `${currentUser.name} (${currentUser.id})`;
-  document.getElementById('nav-date').textContent = todayStr();
-  renderSlotTabs();
-  selectSlot(SLOTS[0]);
-}
-
-function renderSlotTabs() {
-  const tabs = document.getElementById('slot-tabs');
-  const recs = getRecords();
-  const today = todayStr();
-  tabs.innerHTML = '';
-  SLOTS.forEach(s => {
-    const done = recs.some(r => r.date === today && r.uid === currentUser.id && r.slot === s);
-    const btn = document.createElement('button');
-    btn.className = 'slot-tab' + (s === currentSlot ? ' active' : '') + (done ? ' done' : '');
-    btn.textContent = s;
-    btn.onclick = () => selectSlot(s);
-    tabs.appendChild(btn);
+function renderSlotTabs(uid){
+  const recs=getRecs(),td=today();
+  const el=document.getElementById('slot-tabs');el.innerHTML='';
+  SLOTS.forEach(s=>{
+    const done=recs.some(r=>r.date===td&&r.uid===uid&&r.slot===s);
+    const b=document.createElement('button');
+    b.className='stab'+(s===CUR_SLOT?' on':'')+(done?' done':'');
+    b.textContent=s;b.onclick=()=>selectSlot(s,uid);
+    el.appendChild(b);
   });
 }
-
-function selectSlot(slot) {
-  currentSlot = slot;
-  document.querySelectorAll('.slot-tab').forEach(b => {
-    b.classList.toggle('active', b.textContent === slot);
-  });
-  const recs = getRecords();
-  const today = todayStr();
-  const existing = recs.find(r => r.date === today && r.uid === currentUser.id && r.slot === slot);
-  const alreadyMsg = document.getElementById('already-msg');
-  const fields = ['fb-group','fb-post','threads','line','invalid','under','reject','guide','open','clients','monthly'];
-  if (existing) {
-    alreadyMsg.style.display = 'block';
-    const d = existing.data;
-    document.getElementById('f-fb-group').value = d.fbGroup;
-    document.getElementById('f-fb-post').value = d.fbPost;
-    document.getElementById('f-threads').value = d.threads;
-    document.getElementById('f-line').value = d.line;
-    document.getElementById('f-invalid').value = d.invalid;
-    document.getElementById('f-under').value = d.under;
-    document.getElementById('f-reject').value = d.reject;
-    document.getElementById('f-guide').value = d.guide;
-    document.getElementById('f-open').value = d.open;
-    document.getElementById('f-clients').value = d.clients;
-    document.getElementById('f-monthly').value = d.monthly;
-  } else {
-    alreadyMsg.style.display = 'none';
-    ['fb-group','fb-post','threads','line','invalid','under','reject','guide','open','clients','monthly'].forEach(k => {
-      document.getElementById('f-' + k).value = 0;
-    });
-  }
+function selectSlot(slot,uid){
+  CUR_SLOT=slot;
+  document.querySelectorAll('.stab').forEach(b=>b.classList.toggle('on',b.textContent===slot));
+  const rec=getRecs().find(r=>r.date===today()&&r.uid===uid&&r.slot===slot);
+  document.getElementById('done-banner').style.display=rec?'block':'none';
+  if(rec){FKEYS.forEach((k,i)=>document.getElementById('f'+i).value=rec.data[k]||0)}
+  else{for(let i=0;i<11;i++)document.getElementById('f'+i).value=0}
+}
+function submitSlot(){
+  const s=getSession();if(!s)return;
+  const user=getUsers().find(u=>u.id===s.uid);if(!user)return;
+  const btn=document.getElementById('sub-btn');btn.disabled=true;btn.textContent='儲存中…';
+  const data={};FKEYS.forEach((k,i)=>data[k]=+(document.getElementById('f'+i).value)||0);
+  const recs=getRecs(),td=today();
+  const idx=recs.findIndex(r=>r.date===td&&r.uid===user.id&&r.slot===CUR_SLOT);
+  const rec={date:td,uid:user.id,name:user.name,slot:CUR_SLOT,data,ts:Date.now()};
+  if(idx>=0)recs[idx]=rec;else recs.push(rec);
+  saveRecs(recs);
+  btn.disabled=false;btn.textContent='✓ 提交此時段數據';
+  const ok=document.getElementById('ok-msg');ok.style.display='inline';
+  setTimeout(()=>ok.style.display='none',2500);
+  renderSlotTabs(user.id);
+  document.getElementById('done-banner').style.display='block';
 }
 
-function submitSlot() {
-  const data = {
-    fbGroup: +document.getElementById('f-fb-group').value,
-    fbPost: +document.getElementById('f-fb-post').value,
-    threads: +document.getElementById('f-threads').value,
-    line: +document.getElementById('f-line').value,
-    invalid: +document.getElementById('f-invalid').value,
-    under: +document.getElementById('f-under').value,
-    reject: +document.getElementById('f-reject').value,
-    guide: +document.getElementById('f-guide').value,
-    open: +document.getElementById('f-open').value,
-    clients: +document.getElementById('f-clients').value,
-    monthly: +document.getElementById('f-monthly').value,
-  };
-  const recs = getRecords();
-  const today = todayStr();
-  const idx = recs.findIndex(r => r.date === today && r.uid === currentUser.id && r.slot === currentSlot);
-  const rec = { date: today, uid: currentUser.id, name: currentUser.name, slot: currentSlot, data, ts: Date.now() };
-  if (idx >= 0) recs[idx] = rec; else recs.push(rec);
-  saveRecords(recs);
-  const ok = document.getElementById('submit-ok');
-  ok.style.display = 'inline';
-  setTimeout(() => ok.style.display = 'none', 2000);
-  renderSlotTabs();
-  document.getElementById('already-msg').style.display = 'block';
+// Admin
+function initAdmin(){
+  const td=today();
+  document.getElementById('ov-date').value=td;
+  if(!document.getElementById('dt-from').value)document.getElementById('dt-from').value=td;
+  if(!document.getElementById('dt-to').value)document.getElementById('dt-to').value=td;
+  refreshUserSelects();renderOv();renderUserList();
 }
-
-// ══════════════════════════════════════
-// ADMIN PAGE
-// ══════════════════════════════════════
-function initAdminPage() {
-  const today = todayStr();
-  document.getElementById('ov-date').value = today;
-  const dtFrom = document.getElementById('dt-from');
-  const dtTo = document.getElementById('dt-to');
-  if (!dtFrom.value) dtFrom.value = today;
-  if (!dtTo.value) dtTo.value = today;
-  refreshUserSelects();
-  renderOverview();
-  renderUserList();
-}
-
-function refreshUserSelects() {
-  const users = getUsers();
-  ['ov-user','dt-user'].forEach(id => {
-    const sel = document.getElementById(id);
-    const cur = sel.value;
-    sel.innerHTML = '<option value="">全部人員</option>';
-    users.forEach(u => {
-      const o = document.createElement('option');
-      o.value = u.id; o.textContent = `${u.name} (${u.id})`;
-      sel.appendChild(o);
-    });
-    sel.value = cur;
+function refreshAdmin(){renderOv();renderDt();renderUserList()}
+function refreshUserSelects(){
+  const users=getUsers();
+  ['ov-user','dt-user'].forEach(id=>{
+    const sel=document.getElementById(id),cur=sel.value;
+    sel.innerHTML='<option value="">全部人員</option>';
+    users.forEach(u=>{const o=document.createElement('option');o.value=u.id;o.textContent=`${u.name} (${u.id})`;sel.appendChild(o)});
+    sel.value=cur;
   });
 }
-
-function adminTab(name, el) {
-  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
-  el.classList.add('active');
-  ['overview','detail','users'].forEach(t => {
-    document.getElementById('tab-' + t).style.display = t === name ? 'block' : 'none';
+function filt(recs,{date,from,to,uid,slot}={}){
+  return recs.filter(r=>{
+    if(date&&r.date!==date)return false;
+    if(from&&r.date<from)return false;
+    if(to&&r.date>to)return false;
+    if(uid&&r.uid!==uid)return false;
+    if(slot&&r.slot!==slot)return false;
+    return true;
   });
-  if (name === 'overview') renderOverview();
-  if (name === 'detail') renderDetail();
-  if (name === 'users') renderUserList();
+}
+function sumF(recs,k){return recs.reduce((s,r)=>s+(r.data[k]||0),0)}
+function renderOv(){
+  const date=document.getElementById('ov-date').value||today();
+  const slot=document.getElementById('ov-slot').value;
+  const uid=document.getElementById('ov-user').value;
+  const recs=filt(getRecs(),{date,slot:slot||undefined,uid:uid||undefined});
+  const s=k=>sumF(recs,k);
+  document.getElementById('ov-stats').innerHTML=`
+    <div class="scard"><div class="sl">成功開戶</div><div class="sv green">${s('open')}</div></div>
+    <div class="scard"><div class="sl">有效客戶數</div><div class="sv green">${s('clients')}</div></div>
+    <div class="scard"><div class="sl">引流 LINE</div><div class="sv blue">${s('line')}</div></div>
+    <div class="scard"><div class="sl">引導二線</div><div class="sv blue">${s('guide')}</div></div>
+    <div class="scard"><div class="sl">無效詢問</div><div class="sv amber">${s('invalid')}</div></div>
+    <div class="scard"><div class="sl">有效月支數</div><div class="sv cyan">${s('monthly')}</div></div>
+    <div class="scard"><div class="sl">FB社團</div><div class="sv purple">${s('fbGroup')}</div></div>
+    <div class="scard"><div class="sl">FB發文</div><div class="sv purple">${s('fbPost')}</div></div>`;
+  const mx=Math.max(s('line'),1);
+  document.getElementById('ov-funnel').innerHTML=[
+    ['引流 LINE',s('line'),'var(--accent)',s('line')],
+    ['引導二線',s('guide'),'var(--cyan)',mx],
+    ['成功開戶',s('open'),'var(--green)',mx],
+    ['無效詢問',s('invalid'),'var(--amber)',mx],
+  ].map(([l,v,c,base])=>`<div class="fnl-row"><span class="fnl-lbl">${l}</span><div class="fnl-bw"><div class="fnl-b" style="width:${Math.round(v/Math.max(base,1)*100)}%;background:${c}"></div></div><span class="fnl-n" style="color:${c}">${v}</span></div>`).join('');
+  renderTbl('ov-tbody',recs);
+}
+function renderDt(){
+  const recs=filt(getRecs(),{
+    from:document.getElementById('dt-from').value||undefined,
+    to:document.getElementById('dt-to').value||undefined,
+    uid:document.getElementById('dt-user').value||undefined,
+    slot:document.getElementById('dt-slot').value||undefined
+  });renderTbl('dt-tbody',recs);
+}
+function renderTbl(id,recs){
+  const el=document.getElementById(id);
+  if(!recs.length){el.innerHTML='<tr><td colspan="14" class="empty">此條件無數據</td></tr>';return}
+  recs.sort((a,b)=>b.ts-a.ts);
+  el.innerHTML=recs.map(r=>{const d=r.data;return`<tr>
+    <td class="tdm">${r.date}</td><td><span class="bslot">${r.slot}</span></td>
+    <td>${r.name}<span style="color:var(--dim);font-size:10px;margin-left:4px">${r.uid}</span></td>
+    <td class="tdm">${d.fbGroup}</td><td class="tdm">${d.fbPost}</td><td class="tdm">${d.threads}</td>
+    <td class="tdm" style="color:var(--accent)">${d.line}</td>
+    <td class="tdm" style="color:var(--amber)">${d.invalid}</td>
+    <td class="tdm">${d.under}</td>
+    <td class="tdm" style="color:var(--red)">${d.reject}</td>
+    <td class="tdm">${d.guide}</td>
+    <td class="tdm" style="color:var(--green)">${d.open}</td>
+    <td class="tdm" style="color:var(--green)">${d.clients}</td>
+    <td class="tdm" style="color:var(--cyan)">${d.monthly}</td>
+  </tr>`}).join('');
 }
 
-function filterRecords(opts = {}) {
-  let recs = getRecords();
-  if (opts.date) recs = recs.filter(r => r.date === opts.date);
-  if (opts.from) recs = recs.filter(r => r.date >= opts.from);
-  if (opts.to) recs = recs.filter(r => r.date <= opts.to);
-  if (opts.uid) recs = recs.filter(r => r.uid === opts.uid);
-  if (opts.slot) recs = recs.filter(r => r.slot === opts.slot);
-  return recs;
-}
-
-function sumField(recs, field) {
-  return recs.reduce((s, r) => s + (r.data[field] || 0), 0);
-}
-
-function renderOverview() {
-  const date = document.getElementById('ov-date').value || todayStr();
-  const slot = document.getElementById('ov-slot').value;
-  const uid = document.getElementById('ov-user').value;
-  const recs = filterRecords({ date, slot: slot || undefined, uid: uid || undefined });
-
-  const line = sumField(recs, 'line');
-  const guide = sumField(recs, 'guide');
-  const open = sumField(recs, 'open');
-  const invalid = sumField(recs, 'invalid');
-  const clients = sumField(recs, 'clients');
-  const monthly = sumField(recs, 'monthly');
-  const fbGroup = sumField(recs, 'fbGroup');
-  const fbPost = sumField(recs, 'fbPost');
-
-  document.getElementById('ov-stats').innerHTML = `
-    <div class="stat-card"><div class="sc-label">成功開戶</div><div class="sc-val green">${open}</div></div>
-    <div class="stat-card"><div class="sc-label">有效客戶數</div><div class="sc-val green">${clients}</div></div>
-    <div class="stat-card"><div class="sc-label">引流 LINE</div><div class="sc-val blue">${line}</div></div>
-    <div class="stat-card"><div class="sc-label">引導二線</div><div class="sc-val blue">${guide}</div></div>
-    <div class="stat-card"><div class="sc-label">無效詢問</div><div class="sc-val amber">${invalid}</div></div>
-    <div class="stat-card"><div class="sc-label">有效月支數</div><div class="sc-val cyan">${monthly}</div></div>
-    <div class="stat-card"><div class="sc-label">FB社團 新增</div><div class="sc-val">${fbGroup}</div></div>
-    <div class="stat-card"><div class="sc-label">FB發文 新增</div><div class="sc-val">${fbPost}</div></div>
-  `;
-
-  // Funnel
-  const max = Math.max(line, 1);
-  document.getElementById('ov-funnel').innerHTML = [
-    ['引流 LINE', line, 'var(--accent)', line],
-    ['引導二線', guide, 'var(--cyan)', max],
-    ['成功開戶', open, 'var(--green)', max],
-    ['無效詢問', invalid, 'var(--amber)', max],
-  ].map(([label, val, color, base]) => `
-    <div class="funnel-row">
-      <span class="funnel-label">${label}</span>
-      <div class="funnel-bar-wrap">
-        <div class="funnel-bar" style="width:${Math.round(val/Math.max(base,1)*100)}%;background:${color}"></div>
+// User mgmt
+function renderUserList(){
+  const users=getUsers();
+  const el=document.getElementById('ulist');
+  if(!users.length){el.innerHTML='<div style="color:var(--dim);font-size:13px;padding:10px">尚無人員帳號</div>';return}
+  el.innerHTML=users.map((u,i)=>`
+    <div class="urow">
+      <div><div class="uname">${u.name}</div><div class="uid-pw">編號：${u.id}　密碼：${u.pw}</div></div>
+      <div class="urow-actions">
+        <button class="btn-edit" onclick="openEdit(${i})">編輯</button>
+        <button class="btn-del" onclick="delUser(${i})">移除</button>
       </div>
-      <span class="funnel-num" style="color:${color}">${val}</span>
-    </div>
-  `).join('');
-
-  // Table
-  renderTable('ov-tbody', recs);
+    </div>`).join('');
+}
+function addUser(){
+  const name=document.getElementById('nu-name').value.trim();
+  const id=document.getElementById('nu-id').value.trim();
+  const pw=document.getElementById('nu-pw').value.trim();
+  const msg=document.getElementById('add-msg');
+  if(!name||!id||!pw){showMsg(msg,'⚠ 請填寫所有欄位','var(--amber)');return}
+  const users=getUsers();
+  if(users.find(u=>u.id===id)){showMsg(msg,'⚠ 編號已存在','var(--red)');return}
+  users.push({id,name,pw});saveUsers(users);
+  ['nu-name','nu-id','nu-pw'].forEach(k=>document.getElementById(k).value='');
+  showMsg(msg,'✅ 新增成功','var(--green)');
+  renderUserList();refreshUserSelects();
+}
+function openEdit(i){
+  editIdx=i;const u=getUsers()[i];
+  document.getElementById('edit-name').value=u.name;
+  document.getElementById('edit-id').value=u.id;
+  document.getElementById('edit-pw').value=u.pw;
+  document.getElementById('edit-modal').classList.add('on');
+}
+function closeModal(){document.getElementById('edit-modal').classList.remove('on');editIdx=-1}
+function saveEdit(){
+  if(editIdx<0)return;
+  const name=document.getElementById('edit-name').value.trim();
+  const id=document.getElementById('edit-id').value.trim();
+  const pw=document.getElementById('edit-pw').value.trim();
+  if(!name||!id||!pw)return;
+  const users=getUsers();users[editIdx]={id,name,pw};saveUsers(users);
+  closeModal();renderUserList();refreshUserSelects();
+}
+function delUser(i){
+  const users=getUsers();
+  if(!confirm(`確認移除「${users[i].name}」？`))return;
+  users.splice(i,1);saveUsers(users);renderUserList();refreshUserSelects();
 }
 
-function renderDetail() {
-  const from = document.getElementById('dt-from').value;
-  const to = document.getElementById('dt-to').value;
-  const uid = document.getElementById('dt-user').value;
-  const slot = document.getElementById('dt-slot').value;
-  const recs = filterRecords({ from: from || undefined, to: to || undefined, uid: uid || undefined, slot: slot || undefined });
-  renderTable('dt-tbody', recs);
+// Settings
+function changeAdminPw(){
+  const pw=document.getElementById('new-admin-pw').value.trim();
+  const msg=document.getElementById('pw-msg');
+  if(!pw){showMsg(msg,'⚠ 請輸入密碼','var(--amber)');return}
+  localStorage.setItem(SK.A,pw);showMsg(msg,'✅ 已更新','var(--green)');
+  document.getElementById('new-admin-pw').value='';
+}
+function exportData(){
+  const blob=new Blob([JSON.stringify({users:getUsers(),records:getRecs(),exportedAt:new Date().toISOString()},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`datapulse_${today()}.json`;a.click();
+}
+function clearAllData(){
+  if(!confirm('確認清除所有數據記錄？人員帳號不受影響'))return;
+  localStorage.removeItem(SK.R);renderOv();renderDt();alert('✅ 數據已清除');
 }
 
-function renderTable(tbodyId, recs) {
-  const tbody = document.getElementById(tbodyId);
-  if (!recs.length) {
-    tbody.innerHTML = `<tr><td colspan="14" class="empty-state">此條件無數據</td></tr>`;
-    return;
-  }
-  recs.sort((a,b) => b.ts - a.ts);
-  tbody.innerHTML = recs.map(r => {
-    const d = r.data;
-    return `<tr>
-      <td class="td-mono">${r.date}</td>
-      <td><span class="badge-slot">${r.slot}</span></td>
-      <td class="td-name">${r.name}<span style="color:var(--dim);font-size:11px;margin-left:4px">${r.uid}</span></td>
-      <td class="td-mono">${d.fbGroup}</td>
-      <td class="td-mono">${d.fbPost}</td>
-      <td class="td-mono">${d.threads}</td>
-      <td class="td-mono" style="color:var(--accent)">${d.line}</td>
-      <td class="td-mono" style="color:var(--amber)">${d.invalid}</td>
-      <td class="td-mono">${d.under}</td>
-      <td class="td-mono" style="color:var(--red)">${d.reject}</td>
-      <td class="td-mono">${d.guide}</td>
-      <td class="td-mono" style="color:var(--green)">${d.open}</td>
-      <td class="td-mono" style="color:var(--green)">${d.clients}</td>
-      <td class="td-mono" style="color:var(--cyan)">${d.monthly}</td>
-    </tr>`;
-  }).join('');
+function aTab(name,el){
+  document.querySelectorAll('.aside-item').forEach(i=>i.classList.remove('on'));el.classList.add('on');
+  ['ov','dt','us','cfg'].forEach(t=>document.getElementById('tab-'+t).style.display=t===name?'block':'none');
+  if(name==='ov')renderOv();if(name==='dt')renderDt();if(name==='us')renderUserList();
 }
 
-function renderUserList() {
-  const users = getUsers();
-  document.getElementById('user-list').innerHTML = users.map((u, i) => `
-    <div class="user-row">
-      <div class="user-info">
-        <div class="u-name">${u.name}</div>
-        <div class="u-id">${u.id} · 密碼：${u.pw}</div>
-      </div>
-      <button class="btn-del" onclick="delUser(${i})">移除</button>
-    </div>
-  `).join('');
-}
-
-function addUser() {
-  const name = document.getElementById('nu-name').value.trim();
-  const id = document.getElementById('nu-id').value.trim();
-  const pw = document.getElementById('nu-pw').value.trim();
-  if (!name || !id || !pw) return;
-  const users = getUsers();
-  if (users.find(u => u.id === id)) {
-    document.getElementById('add-msg').textContent = '⚠ 編號已存在';
-    document.getElementById('add-msg').style.display = 'inline';
-    return;
-  }
-  users.push({ id, name, pw });
-  saveUsers(users);
-  document.getElementById('nu-name').value = '';
-  document.getElementById('nu-id').value = '';
-  document.getElementById('nu-pw').value = '';
-  document.getElementById('add-msg').textContent = '✅ 新增成功';
-  document.getElementById('add-msg').style.display = 'inline';
-  setTimeout(() => document.getElementById('add-msg').style.display = 'none', 2000);
-  renderUserList();
-  refreshUserSelects();
-}
-
-function delUser(i) {
-  const users = getUsers();
-  if (!confirm(`確認移除 ${users[i].name}？`)) return;
-  users.splice(i, 1);
-  saveUsers(users);
-  renderUserList();
-  refreshUserSelects();
-}
-
-// enter key for login
-document.getElementById('login-pw').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
-document.getElementById('login-id').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('li-pw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+document.getElementById('li-id').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+document.getElementById('ai-pw').addEventListener('keydown',e=>{if(e.key==='Enter')doAdminLogin()});
+document.getElementById('edit-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal()});
 </script>
 </body>
 </html>
