@@ -1419,6 +1419,14 @@ async function initClientTab(uid){
   renderTaskAlerts(uid);
 }
 
+// Get rgba color string from CSS var
+function colorToRgba(color){
+  if(color==='var(--accent)') return '79,142,247';
+  if(color==='var(--green)') return '61,214,140';
+  if(color==='var(--amber)') return '244,185,66';
+  return '167,139,250';
+}
+
 // Render today's task alerts at top
 async function renderTaskAlerts(uid){
   const clients=await getMyClients(uid);
@@ -1431,22 +1439,25 @@ async function renderTaskAlerts(uid){
     if(c.status==='kicked') continue;
     const days=daysSince(c.joinDate);
     const rule=getDayRule(days);
-    // Check if today's log done
     const log=await fbGet(clientLogPath(uid,c.id,today));
-    if(log) continue; // already logged today
-    html+=`<div style="background:linear-gradient(135deg,rgba(${rule.color==='var(--accent)'?'79,142,247':rule.color==='var(--green)'?'61,214,140':rule.color==='var(--amber)'?'244,185,66':'167,139,250'},.12),transparent);border:1px solid ${rule.color};border-radius:10px;padding:12px 14px;margin-bottom:8px">
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-        <div>
-          <span style="font-size:12px;color:${rule.color};font-weight:600">${rule.label}</span>
-          <span style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-left:8px">第 ${days} 天</span>
-          <div style="font-size:14px;font-weight:500;margin-top:2px">${c.name} <span style="font-size:11px;color:var(--muted);font-family:var(--mono)">#${c.id}</span></div>
-        </div>
-        <button onclick="openLogModal('${c.id}','${c.name}',${days},'${uid}')" style="background:${rule.color};color:#fff;border:none;border-radius:7px;padding:6px 14px;cursor:pointer;font-size:12px;font-weight:600">📝 填今日記錄</button>
-      </div>
-      <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">
-        ${rule.tasks.map(t=>`<span style="font-size:11px;background:rgba(255,255,255,.06);border-radius:4px;padding:2px 8px;color:var(--text)">• ${t}</span>`).join('')}
-      </div>
-    </div>`;
+    if(log) continue;
+    const rgba=colorToRgba(rule.color);
+    const bgStyle='background:linear-gradient(135deg,rgba('+rgba+',.12),transparent)';
+    const borderStyle='border:1px solid '+rule.color;
+    const btnStyle='background:'+rule.color+';color:#fff;border:none;border-radius:7px;padding:6px 14px;cursor:pointer;font-size:12px;font-weight:600';
+    const tasksHtml=rule.tasks.map(t=>'<span style="font-size:11px;background:rgba(255,255,255,.06);border-radius:4px;padding:2px 8px;color:var(--text)">• '+t+'</span>').join('');
+    const onclickAttr='openLogModal("'+c.id+'","'+c.name.replace(/"/g,"'")+'",'+days+',"'+uid+'")';
+    html+='<div style="'+bgStyle+';'+borderStyle+';border-radius:10px;padding:12px 14px;margin-bottom:8px">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">'
+      +'<div>'
+      +'<span style="font-size:12px;color:'+rule.color+';font-weight:600">'+rule.label+'</span>'
+      +'<span style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-left:8px">第 '+days+' 天</span>'
+      +'<div style="font-size:14px;font-weight:500;margin-top:2px">'+c.name+' <span style="font-size:11px;color:var(--muted);font-family:var(--mono)">#'+c.id+'</span></div>'
+      +'</div>'
+      +'<button onclick="'+onclickAttr+'" style="'+btnStyle+'">📝 填今日記錄</button>'
+      +'</div>'
+      +'<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">'+tasksHtml+'</div>'
+      +'</div>';
   }
   el.innerHTML=html||'<div style="font-size:12px;color:var(--green);padding:8px 0">✅ 所有客戶今日記錄已完成</div>';
 }
@@ -1466,7 +1477,9 @@ async function renderClientList(uid){
     const rule=getDayRule(days);
     const log=await fbGet(clientLogPath(uid,c.id,today));
     const kicked=c.status==='kicked';
-    html+=`<div style="background:var(--bg2);border:1px solid ${kicked?'var(--line)':rule.color};border-radius:12px;padding:14px 16px;opacity:${kicked?'.5':'1'}">
+    const cardBorder=kicked?'var(--line)':rule.color;
+    const cardOpacity=kicked?'.5':'1';
+    html+='<div style="background:var(--bg2);border:1px solid '+cardBorder+';border-radius:12px;padding:14px 16px;opacity:'+cardOpacity+'">'
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap">
         <div style="flex:1">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
@@ -1613,26 +1626,30 @@ window.renderClientAdmin = async function(){
   if(!rows.length){el.innerHTML='<div class="empty">此條件無客戶資料</div>';return}
   rows.sort((a,b)=>a.days-b.days);
 
-  el.innerHTML=rows.map(({uid,staffName,c,days,log,rule})=>`
-    <div style="background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px 15px;margin-bottom:8px">
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <span style="font-weight:600">${c.name}</span>
-          <span style="font-size:11px;color:var(--muted);font-family:var(--mono)">#${c.id}</span>
-          <span style="font-size:11px;color:${rule.color};background:rgba(255,255,255,.05);border-radius:4px;padding:1px 7px">第 ${days} 天</span>
-          <span style="font-size:11px;color:var(--muted)">負責：${staffName}</span>
-        </div>
-        <span style="font-size:12px;color:${log?'var(--green)':'var(--amber)'}">${log?'✅ 已記錄':'⏳ 未記錄'}</span>
-      </div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:4px">${rule.label}｜進群：${c.joinDate}</div>
-      ${log?`<div style="font-size:12px;color:var(--text);background:var(--bg3);border-radius:6px;padding:7px 10px;margin-top:6px">
-        <span style="color:var(--muted)">今日狀況：</span>${log.status||'—'}<br>
-        <span style="color:var(--muted)">做單：</span>${log.dadan?'✓':'—'}&nbsp;&nbsp;
-        <span style="color:var(--muted)">YT：</span>${log.yt?'✓':'—'}&nbsp;&nbsp;
-        <span style="color:var(--muted)">探店：</span>${log.explore?'✓':'—'}
-        ${log.note?`<br><span style="color:var(--muted)">備註：</span>${log.note}`:''}
-      </div>`:''}
-    </div>`).join('');
+  el.innerHTML=rows.map(({uid,staffName,c,days,log,rule})=>{
+    const statusColor=log?'var(--green)':'var(--amber)';
+    const statusText=log?'✅ 已記錄':'⏳ 未記錄';
+    const logHtml=log?('<div style="font-size:12px;color:var(--text);background:var(--bg3);border-radius:6px;padding:7px 10px;margin-top:6px">'
+      +'<span style="color:var(--muted)">今日狀況：</span>'+(log.status||'—')+'<br>'
+      +'<span style="color:var(--muted)">做單：</span>'+(log.dadan?'✓':'—')+'&nbsp;&nbsp;'
+      +'<span style="color:var(--muted)">YT：</span>'+(log.yt?'✓':'—')+'&nbsp;&nbsp;'
+      +'<span style="color:var(--muted)">探店：</span>'+(log.explore?'✓':'—')
+      +(log.note?'<br><span style="color:var(--muted)">備註：</span>'+log.note:'')
+      +'</div>'):'';
+    return '<div style="background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px 15px;margin-bottom:8px">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">'
+      +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+      +'<span style="font-weight:600">'+c.name+'</span>'
+      +'<span style="font-size:11px;color:var(--muted);font-family:var(--mono)">#'+c.id+'</span>'
+      +'<span style="font-size:11px;color:'+rule.color+';background:rgba(255,255,255,.05);border-radius:4px;padding:1px 7px">第 '+days+' 天</span>'
+      +'<span style="font-size:11px;color:var(--muted)">負責：'+staffName+'</span>'
+      +'</div>'
+      +'<span style="font-size:12px;color:'+statusColor+'">'+statusText+'</span>'
+      +'</div>'
+      +'<div style="font-size:11px;color:var(--muted);margin-bottom:4px">'+rule.label+'｜進群：'+c.joinDate+'</div>'
+      +logHtml
+      +'</div>';
+  }).join('');
 }
 
 // Helper: todayStr (same as today())
