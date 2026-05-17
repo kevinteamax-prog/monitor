@@ -1423,42 +1423,48 @@ function colorToRgba(color){
   return '167,139,250';
 }
 
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function escAttr(s){return String(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+
 // Render today's task alerts at top
 async function renderTaskAlerts(uid){
   const clients=await getMyClients(uid);
   const el=document.getElementById('task-alerts');
   if(!clients.length){el.innerHTML='';return}
-
   const today=todayStr();
   let html='';
+  const pendingClients=[];
   for(const c of clients){
     if(c.status==='kicked') continue;
     const days=daysSince(c.joinDate);
     const rule=getDayRule(days);
     const log=await fbGet(clientLogPath(uid,c.id,today));
     if(log) continue;
+    pendingClients.push({c,days,rule});
     const rgba=colorToRgba(rule.color);
     const bgStyle='background:linear-gradient(135deg,rgba('+rgba+',.12),transparent)';
     const borderStyle='border:1px solid '+rule.color;
-    const btnStyle='background:'+rule.color+';color:#fff;border:none;border-radius:7px;padding:6px 14px;cursor:pointer;font-size:12px;font-weight:600';
-    const tasksHtml=rule.tasks.map(t=>'<span style="font-size:11px;background:rgba(255,255,255,.06);border-radius:4px;padding:2px 8px;color:var(--text)">• '+t+'</span>').join('');
-    const onclickAttr='openLogModal("'+c.id+'","'+c.name.replace(/"/g,"'")+'",'+days+',"'+uid+'")';
+    const tasksHtml=rule.tasks.map(t=>'<span style="font-size:11px;background:rgba(255,255,255,.06);border-radius:4px;padding:2px 8px;color:var(--text)">• '+escHtml(t)+'</span>').join('');
     html+='<div style="'+bgStyle+';'+borderStyle+';border-radius:10px;padding:12px 14px;margin-bottom:8px">'
       +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">'
       +'<div>'
-      +'<span style="font-size:12px;color:'+rule.color+';font-weight:600">'+rule.label+'</span>'
+      +'<span style="font-size:12px;color:'+rule.color+';font-weight:600">'+escHtml(rule.label)+'</span>'
       +'<span style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-left:8px">第 '+days+' 天</span>'
-      +'<div style="font-size:14px;font-weight:500;margin-top:2px">'+c.name+' <span style="font-size:11px;color:var(--muted);font-family:var(--mono)">#'+c.id+'</span></div>'
+      +'<div style="font-size:14px;font-weight:500;margin-top:2px">'+escHtml(c.name)+' <span style="font-size:11px;color:var(--muted);font-family:var(--mono)">#'+escHtml(c.id)+'</span></div>'
       +'</div>'
-      +'<button onclick="'+onclickAttr+'" style="'+btnStyle+'">📝 填今日記錄</button>'
+      +'<button class="alert-log-btn" data-cid="'+escAttr(c.id)+'" data-cname="'+escAttr(c.name)+'" data-days="'+days+'" data-uid="'+escAttr(uid)+'" style="background:'+rule.color+';color:#fff;border:none;border-radius:7px;padding:6px 14px;cursor:pointer;font-size:12px;font-weight:600">📝 填今日記錄</button>'
       +'</div>'
       +'<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">'+tasksHtml+'</div>'
       +'</div>';
   }
   el.innerHTML=html||'<div style="font-size:12px;color:var(--green);padding:8px 0">✅ 所有客戶今日記錄已完成</div>';
+  el.querySelectorAll('.alert-log-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      openLogModal(btn.dataset.cid,btn.dataset.cname,+btn.dataset.days,btn.dataset.uid);
+    });
+  });
 }
 
-// Render client list
 async function renderClientList(uid){
   const clients=await getMyClients(uid);
   const el=document.getElementById('client-list');
@@ -1478,20 +1484,26 @@ async function renderClientList(uid){
     const statusBadge=log
       ?'<span style="font-size:11px;color:var(--green)">✅ 今日已記錄</span>'
       :'<span style="font-size:11px;color:var(--amber)">⏳ 待記錄</span>';
-    const kickedBadge=kicked?'<span style="font-size:11px;color:var(--red);background:rgba(244,96,96,.1);border-radius:4px;padding:1px 7px">已踢出</span>':'';
-    const logStatus=log&&log.status?('<div style="font-size:12px;color:var(--text);margin-top:5px;background:var(--bg3);border-radius:6px;padding:6px 10px">'+log.status+'</div>'):'';
-    const recordBtn=kicked?'':'<button onclick="openLogModal(''+c.id+'',''+c.name.replace(/'/g,"\'")+'','+days+',''+uid+'')" style="background:rgba(79,142,247,.12);border:1px solid var(--accent);color:var(--accent);border-radius:6px;padding:4px 11px;cursor:pointer;font-size:12px">📝 記錄</button>';
-    const kickBtn='<button onclick="toggleKickClient(''+uid+'',''+c.id+'',''+(kicked?'true':'false')+'')" style="background:transparent;border:1px solid var(--line2);color:var(--muted);border-radius:6px;padding:4px 11px;cursor:pointer;font-size:12px">'+(kicked?'恢復':'踢出')+'</button>';
+    const kickedBadge=kicked
+      ?'<span style="font-size:11px;color:var(--red);background:rgba(244,96,96,.1);border-radius:4px;padding:1px 7px">已踢出</span>'
+      :'';
+    const logStatus=log&&log.status
+      ?'<div style="font-size:12px;color:var(--text);margin-top:5px;background:var(--bg3);border-radius:6px;padding:6px 10px">'+escHtml(log.status)+'</div>'
+      :'';
+    const recordBtn=kicked?'':'<button class="cl-log-btn" data-cid="'+escAttr(c.id)+'" data-cname="'+escAttr(c.name)+'" data-days="'+days+'" data-uid="'+escAttr(uid)+'" style="background:rgba(79,142,247,.12);border:1px solid var(--accent);color:var(--accent);border-radius:6px;padding:4px 11px;cursor:pointer;font-size:12px">📝 記錄</button>';
+    const kickLabel=kicked?'恢復':'踢出';
+    const kickVal=kicked?'true':'false';
+    const kickBtn='<button class="cl-kick-btn" data-uid="'+escAttr(uid)+'" data-cid="'+escAttr(c.id)+'" data-val="'+kickVal+'" style="background:transparent;border:1px solid var(--line2);color:var(--muted);border-radius:6px;padding:4px 11px;cursor:pointer;font-size:12px">'+kickLabel+'</button>';
     html+='<div style="background:var(--bg2);border:1px solid '+cardBorder+';border-radius:12px;padding:14px 16px;opacity:'+cardOpacity+'">'
       +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap">'
       +'<div style="flex:1">'
       +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">'
-      +'<span style="font-weight:600;font-size:15px">'+c.name+'</span>'
-      +'<span style="font-size:11px;color:var(--muted);font-family:var(--mono)">#'+c.id+'</span>'
+      +'<span style="font-weight:600;font-size:15px">'+escHtml(c.name)+'</span>'
+      +'<span style="font-size:11px;color:var(--muted);font-family:var(--mono)">#'+escHtml(c.id)+'</span>'
       +'<span style="font-size:11px;background:rgba(255,255,255,.06);border-radius:4px;padding:1px 7px;color:'+rule.color+'">第 '+days+' 天</span>'
       +kickedBadge+statusBadge
       +'</div>'
-      +'<div style="font-size:11px;color:var(--muted)">進群：'+c.joinDate+' ｜ '+rule.label+'</div>'
+      +'<div style="font-size:11px;color:var(--muted)">進群：'+escHtml(c.joinDate)+' ｜ '+escHtml(rule.label)+'</div>'
       +logStatus
       +'</div>'
       +'<div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap">'+recordBtn+kickBtn+'</div>'
@@ -1499,7 +1511,19 @@ async function renderClientList(uid){
       +'</div>';
   }
   el.innerHTML=html;
+  // Attach events via delegation (avoids all inline JS escaping issues)
+  el.querySelectorAll('.cl-log-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      openLogModal(btn.dataset.cid,btn.dataset.cname,+btn.dataset.days,btn.dataset.uid);
+    });
+  });
+  el.querySelectorAll('.cl-kick-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      toggleKickClient(btn.dataset.uid,btn.dataset.cid,btn.dataset.val);
+    });
+  });
 }
+
 
 // Add client
 window.addClient = async function(){
