@@ -359,11 +359,8 @@ async function fbRemove(path){await remove(ref(db,path))}
 
 // ── Users ──
 async function getUsers(){
-  let u = await fbGet('users');
-  if(!u){
-    u = {EMP001:{id:'EMP001',name:'員工A',pw:'123456'},EMP002:{id:'EMP002',name:'員工B',pw:'123456'}};
-    await fbSet('users',u);
-  }
+  const u = await fbGet('users');
+  if(!u) return [];
   return Object.values(u);
 }
 async function saveUser(user){ await fbSet(`users/${user.id}`, user) }
