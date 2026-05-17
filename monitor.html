@@ -831,14 +831,10 @@ ${diff ? `【本時段新增變化（與上一時段相比）】
       const text = json.content[0].text;
       // Format output
       let html = text
-        .replace(/⚠️([^
-]+)/g,'<span class="warn">⚠️$1</span>')
-        .replace(/✅([^
-]+)/g,'<span class="good">✅$1</span>')
-        .replace(/💡([^
-]+)/g,'<span class="tip">💡$1</span>')
-        .replace(/
-/g,'<br>');
+        .replace(/\u26a0\ufe0f([^\n]+)/g,'<span class="warn">⚠️$1</span>')
+        .replace(/\u2705([^\n]+)/g,'<span class="good">✅$1</span>')
+        .replace(/\u1f4a1([^\n]+)/g,'<span class="tip">💡$1</span>')
+        .replace(/\n/g,'<br>');
       body.innerHTML = html;
     } else {
       body.innerHTML = '<span class="tip">💡 數據已儲存，AI 分析暫時無法取得，請繼續保持努力！</span>';
