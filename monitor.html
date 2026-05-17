@@ -224,9 +224,10 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
     </div>
   </nav>
   <!-- Report page tab bar -->
-  <div style="background:var(--bg2);border-bottom:1px solid var(--line);display:flex;gap:0">
-    <button id="rtab-data" onclick="switchRTab('data')" style="padding:10px 20px;font-size:13px;font-weight:600;color:var(--accent);border:none;border-bottom:2px solid var(--accent);background:transparent;cursor:pointer;transition:all .2s">📊 數據填報</button>
-    <button id="rtab-client" onclick="switchRTab('client')" style="padding:10px 20px;font-size:13px;font-weight:500;color:var(--muted);border:none;border-bottom:2px solid transparent;background:transparent;cursor:pointer;transition:all .2s">👥 客戶追蹤</button>
+  <div style="background:var(--bg2);border-bottom:1px solid var(--line);display:flex;gap:0;overflow-x:auto">
+    <button id="rtab-data" onclick="switchRTab('data')" style="padding:10px 20px;font-size:13px;font-weight:600;color:var(--accent);border:none;border-bottom:2px solid var(--accent);background:transparent;cursor:pointer;transition:all .2s;white-space:nowrap">📊 數據填報</button>
+    <button id="rtab-device" onclick="switchRTab('device')" style="padding:10px 20px;font-size:13px;font-weight:500;color:var(--muted);border:none;border-bottom:2px solid transparent;background:transparent;cursor:pointer;transition:all .2s;white-space:nowrap">📱 設備回報</button>
+    <button id="rtab-client" onclick="switchRTab('client')" style="padding:10px 20px;font-size:13px;font-weight:500;color:var(--muted);border:none;border-bottom:2px solid transparent;background:transparent;cursor:pointer;transition:all .2s;white-space:nowrap">👥 客戶追蹤</button>
   </div>
 
   <!-- DATA TAB -->
@@ -325,6 +326,60 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
     </div>
   </div>
 
+  <!-- DEVICE REPORT TAB -->
+  <div id="rview-device" style="display:none;flex:1;padding:20px;max-width:700px;margin:0 auto;width:100%;padding-bottom:40px">
+    <div style="margin-bottom:14px">
+      <div class="sec-label" style="margin-bottom:10px">選擇回報時段</div>
+      <div style="display:flex;gap:8px">
+        <button id="dev-tab-on" onclick="switchDevShift('on')" style="padding:8px 22px;font-size:13px;font-weight:700;color:#fff;background:var(--green);border:none;border-radius:8px;cursor:pointer;transition:all .2s">🌅 上班回報</button>
+        <button id="dev-tab-off" onclick="switchDevShift('off')" style="padding:8px 22px;font-size:13px;font-weight:500;color:var(--muted);background:var(--bg3);border:1px solid var(--line2);border-radius:8px;cursor:pointer;transition:all .2s">🌙 下班回報</button>
+      </div>
+    </div>
+    <div id="dev-done-banner" class="done-banner">✅ 此時段已填報，重新提交即可覆蓋</div>
+
+    <div class="fcard">
+      <div class="fslabel">📱 LINE 帳號</div>
+      <div class="fgrid">
+        <div class="ffield"><label>LINE 總數</label><input type="number" id="d0" min="0" value="0"></div>
+        <div class="ffield"><label>LINE 異常</label><input type="number" id="d1" min="0" value="0"></div>
+      </div>
+
+      <div class="fslabel">👤 臉書帳號</div>
+      <div class="fgrid">
+        <div class="ffield"><label>臉書總數</label><input type="number" id="d2" min="0" value="0"></div>
+        <div class="ffield"><label>臉書使用中</label><input type="number" id="d3" min="0" value="0"></div>
+        <div class="ffield"><label>臉書異常</label><input type="number" id="d4" min="0" value="0"></div>
+        <div class="ffield"><label>臉書養號中</label><input type="number" id="d5" min="0" value="0"></div>
+      </div>
+
+      <div class="fslabel">🧵 Threads 帳號</div>
+      <div class="fgrid">
+        <div class="ffield"><label>脆總數</label><input type="number" id="d6" min="0" value="0"></div>
+        <div class="ffield"><label>脆使用中</label><input type="number" id="d7" min="0" value="0"></div>
+        <div class="ffield"><label>脆異常</label><input type="number" id="d8" min="0" value="0"></div>
+        <div class="ffield"><label>脆養號中</label><input type="number" id="d9" min="0" value="0"></div>
+      </div>
+
+      <div class="fslabel">🚨 當日特殊狀況</div>
+      <div style="margin-bottom:16px">
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;background:var(--bg3);border-radius:7px;padding:7px 12px"><input type="checkbox" id="dev-line-jump" style="accent-color:var(--red)"> 賴跳開發</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;background:var(--bg3);border-radius:7px;padding:7px 12px"><input type="checkbox" id="dev-fb-ban" style="accent-color:var(--red)"> 臉書封號</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;background:var(--bg3);border-radius:7px;padding:7px 12px"><input type="checkbox" id="dev-threads-ban" style="accent-color:var(--red)"> 脆封號</label>
+        </div>
+        <input type="text" id="dev-incident" placeholder="其他異常狀況說明（選填）" style="width:100%;background:var(--bg3);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:9px 12px;outline:none;font-size:13px">
+      </div>
+
+      <div class="sub-row">
+        <button class="btn-sub" id="dev-sub-btn" onclick="submitDevice()">✓ 提交設備回報</button>
+        <span id="dev-ok-msg" style="color:var(--green);font-size:13px;display:none">✅ 已儲存！</span>
+      </div>
+    </div>
+
+    <!-- 帳號診斷警示 -->
+    <div id="dev-alerts" style="margin-top:4px"></div>
+  </div>
+
   <!-- CLIENT TRACKING TAB -->
   <div id="rview-client" style="display:none;flex:1;padding:20px;max-width:760px;margin:0 auto;width:100%;padding-bottom:40px">
 
@@ -340,7 +395,7 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
         <div class="ffield"><label>進群日期</label><input type="date" id="new-cdate" style="font-size:13px;text-align:left"></div>
         <div class="ffield"><label>版別</label>
           <select id="new-cver" style="width:100%;background:#0a0f2a;border:1px solid var(--accent);color:#fff;border-radius:7px;padding:9px 10px;outline:none;font-size:14px">
-            <option value="F">F版</option>
+            <option value="">載入中…</option>
           </select>
         </div>
       </div>
@@ -487,6 +542,7 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
       <div class="aside-item" onclick="aTab('ss',this)"><span class="d" style="background:var(--purple)"></span>截圖查看</div>
       <div class="aside-item" onclick="aTab('us',this)"><span class="d" style="background:var(--green)"></span>人員管理</div>
       <div class="aside-item" onclick="aTab('cl',this)"><span class="d" style="background:var(--cyan)"></span>客戶總覽</div>
+      <div class="aside-item" onclick="aTab('ver',this)"><span class="d" style="background:var(--amber)"></span>版別管理</div>
       <div class="aside-item" onclick="aTab('cfg',this)"><span class="d" style="background:var(--amber)"></span>系統設定</div>
     </div>
     <div class="acontent">
@@ -582,7 +638,24 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
             <option value="14">第 14 天以上</option>
           </select>
         </div>
+        <div style="margin-bottom:12px">
+          <button id="export-cl-btn" onclick="exportClientExcel()" style="background:rgba(61,214,140,.1);border:1px solid rgba(61,214,140,.3);color:var(--green);border-radius:7px;padding:7px 16px;cursor:pointer;font-size:13px;font-weight:500">⬇ 匯出客戶Excel (.csv)</button>
+        </div>
         <div id="cl-content"><div class="empty">載入中…</div></div>
+      </div>
+
+      <!-- 版別管理 -->
+      <div id="tab-ver" style="display:none">
+        <div class="sccard">
+          <div class="sccard-t">版別設定</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:14px">在這裡新增版別，前台人員新增客戶時就可以選擇</div>
+          <div id="ver-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px"></div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <input type="text" id="ver-input" placeholder="例：H版、A版、B版" style="background:var(--bg3);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:8px 14px;outline:none;font-size:13px;width:200px">
+            <button class="btn-add" onclick="addVersion()">＋ 新增版別</button>
+            <span id="ver-msg" class="imsg"></span>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -756,6 +829,7 @@ window.doLogout = function(){
 function initReport(user){
   document.getElementById('nv-user').textContent=`${user.name} (${user.id})`;
   document.getElementById('new-cdate').value=today();
+  loadVersionsToSelect('new-cver');
   document.getElementById('nv-date').textContent=today();
   renderSlotTabs(user.id);
   selectSlot(SLOTS[0],user.id);
@@ -1076,6 +1150,7 @@ async function initAdmin(){
   document.getElementById('ov-date').value=td;
   document.getElementById('ss-date').value=td;
   document.getElementById('cl-date').value=td;
+  renderVersionList();
   if(!document.getElementById('dt-from').value) document.getElementById('dt-from').value=td;
   if(!document.getElementById('dt-to').value) document.getElementById('dt-to').value=td;
   await refreshUserSelects();
@@ -1418,65 +1493,118 @@ window.exportData = async function(){
 
 window.aTab = function(name,el){
   document.querySelectorAll('.aside-item').forEach(i=>i.classList.remove('on'));el.classList.add('on');
-  ['ov','dt','ss','us','cfg','cl'].forEach(t=>document.getElementById('tab-'+t).style.display=t===name?'block':'none');
+  ['ov','dt','ss','us','cfg','cl','ver'].forEach(t=>document.getElementById('tab-'+t).style.display=t===name?'block':'none');
   if(name==='ov')renderOv();
   if(name==='dt')renderDt();
   if(name==='ss')renderSS();
   if(name==='us')renderUserList();
   if(name==='cl')renderClientAdmin();
+  if(name==='ver')renderVersionList();
 }
 
 // ══════════════════════════════════════
 // CLIENT TRACKING SYSTEM
 // ══════════════════════════════════════
 
-// Task rules by day range
+// Task rules by day range - with persona script
 const TASK_RULES = [
   {
     from:1, to:3,
-    label:'第 1-3 天｜基礎入門',
+    label:'第 1-3 天｜建立指導員權威',
     color:'var(--accent)',
     tasks:[
-      '教會客戶做單任務，帶著他完成第一次',
-      '分享 YT 任務，讓他看影片並回饋心得',
-      '確認客戶進群、了解基本操作',
+      '確認客戶是否已進群，建立「指導員」身分',
+      '教做單任務：帶著完成第一次流量任務、截圖給助理',
+      '教 YT 任務：說明一天兩個時段、看完有100元獎金',
+      '拋出全勤誘餌：連續45天不違規有3萬全勤獎金',
+      '測試配合度：叫他做任務，看他多快動手',
     ],
-    tips:'重點是讓客戶「有參與感」，做單和YT都要手把手帶，不要讓他覺得太難。'
+    scripts:[
+      '「有申請進群了嗎？從現在開始我就是你的指導員啦！」',
+      '「你平時有用YouTube看影片嗎？一天兩個時段，看完有100元獎金。」',
+      '「有找助理申請領取1000工作金了嗎？點流量激勵，打開XAU/USD跟著群裡指引買漲跌，截圖給助理，全程不到10分鐘。」',
+      '「只要連續滿45天做任務不違規，會有全勤獎金3萬元！」',
+      '（客戶不動時）「我今天被助理罵了…因為我是你指導員卻沒教會你任務。今晚8點有空嗎？長時間不開始會被踢出群喔！」',
+    ],
+    tips:'重點是讓客戶動起來。連免費任務都不做的，後續絕對不會轉化，直接標記C類。'
   },
   {
     from:4, to:7,
-    label:'第 4-7 天｜建立信任',
+    label:'第 4-7 天｜提領建立絕對信任',
     color:'var(--green)',
     tasks:[
-      '詢問客戶之前有沒有做過類似的事，了解背景',
-      '教怎麼領錢、Bitopro 操作流程',
-      '問領錢後有什麼規劃、引導說出痛點',
-      '觀察客戶反應，評估是 A/B/C 類',
+      '提醒客戶查看累積金額，引導申請提領',
+      '教 KYC 認證：準備銀行帳號+身分證，可遮蔽重要資訊',
+      '說明提領規則：整數、以千為單位、保留1000工作金',
+      '帶截圖回報：提領後截圖傳給助理登記',
+      '植入幣圈觀念：提到加密貨幣提領無手續費+有回饋金',
+      '刺探財務：問職業、月薪、開銷壓力',
     ],
-    tips:'這階段要挖掘客戶的財務目標和痛點，為後續成交鋪路。'
+    scripts:[
+      '「姐，妳平台累積到多少了？六日可以申請提領，滿3000就可以，不會提領我教妳。」',
+      '「提領要先找客服認證，準備銀行帳號跟身分證，身分證字號可以遮起來，主要露出姓名就好！」',
+      '「記得提領都要整數，以千為單位，一定要保留1千工作金在裡面喔。」',
+      '「我更喜歡用加密貨幣提領，不用被扣手續費，還有回饋金可以領。要用的話要先申辦幣託。」',
+      '「姐妳是做什麼工作的呢？我是工廠文書，3萬5的死薪水，妳呢？」',
+    ],
+    tips:'帶客戶真金白銀領到錢是破除防備心最關鍵的一步。領完錢後心情好，馬上切入財務刺探。'
   },
   {
-    from:8, to:14,
-    label:'第 8-14 天｜情感鋪墊',
+    from:8, to:10,
+    label:'第 8-10 天｜套情報＋拋人設',
     color:'var(--amber)',
     tasks:[
-      '適時切入個人故事鋪墊（單親、替父還債等）',
-      '觀察客戶對故事的反應和判斷',
-      '週末假日準備一個輕鬆話題跟客戶閒聊',
+      '趁客戶領錢心情好，自然帶入生活對話',
+      '拋出自身財務壓力（每月還15000+給父母生活費）',
+      '帶出人設背景（警察爸爸賭債、前夫離婚）',
+      '測試客戶壓力：問有沒有貸款/家庭開銷',
       '持續跟進做單和探店任務',
     ],
-    tips:'故事鋪墊要自然，不能太刻意。週末話題可以是時事、美食、旅遊等輕鬆內容。'
+    scripts:[
+      '「我剛剛也領到薪水了～雖然不多，但補貼了不少生活費。姐打算這筆錢怎麼花呢？」',
+      '「現在物價太恐怖了，我每個月固定還15000，還要給爸媽生活費，基本上領到就打平，妳一個工資能打得過去嗎？」',
+      '「主要是因為我爸以前是警察，退休後被朋友帶壞去賭博玩賽鴿，欠了四百多萬…我前夫受不了這個無底洞就跟我離婚了。」',
+      '「跟你抱怨這麼多不好意思，姐妳平常下班還要負擔家裡開銷嗎？有沒有什麼貸款壓力？」',
+    ],
+    tips:'話題要從「群組賺錢」延伸到「生活開銷」，判斷客戶到底有多缺錢。要自然，不能太刻意。'
+  },
+  {
+    from:11, to:14,
+    label:'第 11-14 天｜展正能量＋灌輸觀念',
+    color:'var(--amber)',
+    tasks:[
+      '人設背景交代完後，展現堅強正能量',
+      '讓客戶說出「加油」或讚美，信任就鎖死',
+      '灌輸趨勢觀念：讓錢幫我們工作',
+      '把群組任務跟改善生活綁定',
+      '絕對不提任何投資方案',
+      '週末準備輕鬆話題（時事、美食、旅遊）',
+    ],
+    scripts:[
+      '「我不怪我前夫，事情遇到了就是要面對。我相信只要肯做，總有一天能讓我兒子跟爸媽過上好日子！」',
+      '「今天繳水電費跟安親班，荷包大失血。還好待在這個群組，每天點任務加減補貼，不然靠我原本薪水真的撐不下去。」',
+      '「助理跟我說：現在社會不是勞力活才是賺錢管道，只會用勞力賺錢是慢性自殺。賺到錢要學會讓錢幫我們工作。」',
+      '「妳有沒有發現傳統生意很難做？反而是大數據、流量產業在爆發。助理說妳永遠賺不到認知以外的錢。」',
+    ],
+    tips:'這階段信任快鎖死了，重點是情感共鳴。等客戶主動說加油/妳好棒，就是信任建立完成的信號！'
   },
   {
     from:15, to:999,
-    label:'第 15 天以上｜每日素材',
+    label:'第 15 天以上｜交接二線',
     color:'var(--purple)',
     tasks:[
-      '每天準備一個素材跟客戶互動（新聞、理財、生活）',
-      '持續觀察出金意願，評估逼單時機',
-      '引導二線，準備成交',
+      '幫二線助理建立好感與專業形象',
+      '統整客戶情報（職業/痛點/資金/信任度）',
+      '私訊助理進行情報交接',
+      '每日一個素材跟客戶互動（理財/趨勢/生活）',
+      '評估逼單時機，觀察出金意願',
     ],
-    tips:'每日素材要和客戶的興趣、痛點相關，讓對話自然引導到投資話題。'
+    scripts:[
+      '「姐我跟妳說，群組裡那個小珊助理人真的很好，我一開始什麼都不懂都是她很有耐心教我。」',
+      '「妳之後有什麼不懂的也可以直接問她，她真的很專業，我很多理財觀念都是她教我的。」',
+      '（交接助理模板）「小珊助理，這位OOO客戶是＿類。職業：＿，痛點：＿，信任度：＿，已領過＿次錢，資金約＿，可開始切入方案。」',
+    ],
+    tips:'情報交接要精準！把客戶的職業、家庭、財務缺口、信任度、可用資金都整理清楚給二線，讓二線能針對痛點一擊必殺。'
   }
 ];
 
@@ -1535,17 +1663,27 @@ async function renderTaskAlerts(uid){
     const rgba=colorToRgba(rule.color);
     const bgStyle='background:linear-gradient(135deg,rgba('+rgba+',.12),transparent)';
     const borderStyle='border:1px solid '+rule.color;
-    const tasksHtml=rule.tasks.map(t=>'<span style="font-size:11px;background:rgba(255,255,255,.06);border-radius:4px;padding:2px 8px;color:var(--text)">• '+escHtml(t)+'</span>').join('');
-    html+='<div style="'+bgStyle+';'+borderStyle+';border-radius:10px;padding:12px 14px;margin-bottom:8px">'
-      +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">'
-      +'<div>'
-      +'<span style="font-size:12px;color:'+rule.color+';font-weight:600">'+escHtml(rule.label)+'</span>'
-      +'<span style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-left:8px">第 '+days+' 天</span>'
-      +'<div style="font-size:14px;font-weight:500;margin-top:2px">'+escHtml(c.name)+' <span style="font-size:11px;color:var(--muted);font-family:var(--mono)">#'+escHtml(c.id)+'</span></div>'
+    const tasksHtml=rule.tasks.map(t=>'<div style="font-size:12px;color:var(--text);padding:3px 0">✦ '+escHtml(t)+'</div>').join('');
+    const scriptsHtml=rule.scripts&&rule.scripts.length
+      ?'<div style="margin-top:8px;border-top:1px solid rgba(255,255,255,.08);padding-top:8px">'
+        +'<div style="font-size:10px;color:'+rule.color+';letter-spacing:.08em;margin-bottom:5px;font-weight:600">💬 今日話術參考</div>'
+        +rule.scripts.map(s=>'<div style="font-size:11px;color:#b8c8e8;padding:4px 8px;background:rgba(255,255,255,.04);border-left:2px solid '+rule.color+';border-radius:0 4px 4px 0;margin-bottom:4px;line-height:1.5">'+escHtml(s)+'</div>').join('')
+        +'</div>'
+      :'';
+    html+='<div style="'+bgStyle+';'+borderStyle+';border-radius:10px;padding:14px;margin-bottom:10px">'
+      +'<div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">'
+      +'<div style="flex:1">'
+      +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">'
+      +'<span style="font-size:12px;color:'+rule.color+';font-weight:700">'+escHtml(rule.label)+'</span>'
+      +'<span style="font-size:11px;color:var(--muted);font-family:var(--mono)">第 '+days+' 天</span>'
       +'</div>'
-      +'<button class="alert-log-btn" data-cid="'+escAttr(c.id)+'" data-cname="'+escAttr(c.name)+'" data-days="'+days+'" data-uid="'+escAttr(uid)+'" style="background:'+rule.color+';color:#fff;border:none;border-radius:7px;padding:6px 14px;cursor:pointer;font-size:12px;font-weight:600">📝 填今日記錄</button>'
+      +'<div style="font-size:15px;font-weight:600">'+escHtml(c.name)+' <span style="font-size:11px;color:var(--muted);font-family:var(--mono)">'+escHtml(c.id)+'</span></div>'
       +'</div>'
-      +'<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">'+tasksHtml+'</div>'
+      +'<button class="alert-log-btn" data-cid="'+escAttr(c.id)+'" data-cname="'+escAttr(c.name)+'" data-days="'+days+'" data-uid="'+escAttr(uid)+'" style="background:'+rule.color+';color:#fff;border:none;border-radius:7px;padding:6px 14px;cursor:pointer;font-size:12px;font-weight:600;flex-shrink:0">📝 填今日記錄</button>'
+      +'</div>'
+      +'<div style="margin-bottom:6px">'+tasksHtml+'</div>'
+      +'<div style="font-size:11px;color:var(--muted);font-style:italic;margin-top:4px">💡 '+escHtml(rule.tips)+'</div>'
+      +scriptsHtml
       +'</div>';
   }
   el.innerHTML=html||'<div style="font-size:12px;color:var(--green);padding:8px 0">✅ 所有客戶今日記錄已完成</div>';
@@ -1581,6 +1719,13 @@ async function renderClientList(uid){
     const logStatus=log&&log.status
       ?'<div style="font-size:12px;color:var(--text);margin-top:5px;background:var(--bg3);border-radius:6px;padding:6px 10px">'+escHtml(log.status)+'</div>'
       :'';
+    // Show today's script hint if not yet logged
+    const scriptHint=!log&&rule.scripts&&rule.scripts.length
+      ?'<div style="margin-top:8px;padding:8px 10px;background:rgba(255,255,255,.04);border-left:2px solid '+rule.color+';border-radius:0 6px 6px 0">'
+        +'<div style="font-size:10px;color:'+rule.color+';font-weight:700;margin-bottom:4px;letter-spacing:.06em">💬 今日話術提醒</div>'
+        +'<div style="font-size:11px;color:#b8c8e8;line-height:1.55">'+escHtml(rule.scripts[days<=rule.to?Math.min(days-rule.from,rule.scripts.length-1):0]||rule.scripts[0])+'</div>'
+        +'</div>'
+      :'';
     const recordBtn=kicked?'':'<button class="cl-log-btn" data-cid="'+escAttr(c.id)+'" data-cname="'+escAttr(c.name)+'" data-days="'+days+'" data-uid="'+escAttr(uid)+'" style="background:rgba(79,142,247,.12);border:1px solid var(--accent);color:var(--accent);border-radius:6px;padding:4px 11px;cursor:pointer;font-size:12px">📝 記錄</button>';
     const kickLabel=kicked?'恢復':'踢出';
     const kickVal=kicked?'true':'false';
@@ -1596,7 +1741,7 @@ async function renderClientList(uid){
       +kickedBadge+statusBadge
       +'</div>'
       +'<div style="font-size:11px;color:var(--muted)">進群：'+escHtml(c.joinDate)+' ｜ '+escHtml(rule.label)+'</div>'
-      +logStatus
+      +logStatus+scriptHint
       +'</div>'
       +'<div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap">'+recordBtn+kickBtn+delBtn+'</div>'
       +'</div>'
@@ -1663,10 +1808,18 @@ window.openLogModal = function(cid,cname,days,uid){
   logModalCtx={uid,cid,days};
   const rule=getDayRule(days);
   document.getElementById('log-modal-title').textContent=`${cname} — 第 ${days} 天`;
+  const _tipTasks=rule.tasks.map(t=>'<div style="padding:2px 0">✦ '+escHtml(t)+'</div>').join('');
+  const _tipScripts=rule.scripts&&rule.scripts.length
+    ?'<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1)">'
+      +'<div style="font-size:10px;font-weight:700;letter-spacing:.08em;margin-bottom:5px;color:'+rule.color+'">💬 今日話術參考</div>'
+      +rule.scripts.map(s=>'<div style="font-size:11px;padding:4px 8px;background:rgba(255,255,255,.05);border-left:2px solid '+rule.color+';border-radius:0 4px 4px 0;margin-bottom:4px;line-height:1.5;color:#c8d8f0">'+escHtml(s)+'</div>').join('')
+      +'</div>'
+    :'';
   document.getElementById('log-task-tip').innerHTML=
-    `<div style="font-size:12px;font-weight:600;color:${rule.color};margin-bottom:6px">${rule.label}</div>`+
-    rule.tasks.map(t=>`<div>• ${t}</div>`).join('')+
-    `<div style="margin-top:6px;color:var(--muted);font-size:11px">💡 ${rule.tips}</div>`;
+    '<div style="font-size:12px;font-weight:700;color:'+rule.color+';margin-bottom:6px">'+escHtml(rule.label)+'</div>'
+    +_tipTasks
+    +'<div style="margin-top:6px;color:var(--muted);font-size:11px;font-style:italic">💡 '+escHtml(rule.tips)+'</div>'
+    +_tipScripts;
   ['log-status','log-note'].forEach(k=>document.getElementById(k).value='');
   ['log-dadan','log-yt','log-explore'].forEach(k=>document.getElementById(k).checked=false);
   // Load today's existing log
@@ -1826,6 +1979,118 @@ window.renderClientAdmin = async function(){
 
 // Helper: todayStr (same as today())
 function todayStr(){ return today(); }
+
+// ══════════════════════════════════════
+// VERSION MANAGEMENT
+// ══════════════════════════════════════
+async function getVersions(){
+  const d=await fbGet('versions');
+  return d?Object.values(d):['F版'];
+}
+
+async function renderVersionList(){
+  const vers=await getVersions();
+  const el=document.getElementById('ver-list');
+  if(!vers.length){el.innerHTML='<span style="color:var(--dim);font-size:13px">尚無版別</span>';return}
+  el.innerHTML=vers.map((v,i)=>'<div style="display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--line2);border-radius:7px;padding:5px 12px">'
+    +'<span style="font-size:13px;font-weight:500">'+escHtml(v)+'</span>'
+    +'<button data-idx="'+i+'" data-name="'+escAttr(v)+'" class="ver-del-btn" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;line-height:1;padding:0 2px">✕</button>'
+    +'</div>').join('');
+  el.querySelectorAll('.ver-del-btn').forEach(btn=>{
+    btn.addEventListener('click',async()=>{
+      const vers2=await getVersions();
+      const name=btn.dataset.name;
+      const filtered=vers2.filter(v=>v!==name);
+      await fbSet('versions',filtered.reduce((o,v,i)=>{o[i]=v;return o},{}));
+      await renderVersionList();
+    });
+  });
+}
+
+window.addVersion = async function(){
+  const val=document.getElementById('ver-input').value.trim();
+  const msg=document.getElementById('ver-msg');
+  if(!val){showMsg(msg,'⚠ 請輸入版別名稱','var(--amber)');return}
+  const vers=await getVersions();
+  if(vers.includes(val)){showMsg(msg,'⚠ 此版別已存在','var(--red)');return}
+  vers.push(val);
+  await fbSet('versions',vers.reduce((o,v,i)=>{o[i]=v;return o},{}));
+  document.getElementById('ver-input').value='';
+  showMsg(msg,'✅ 已新增','var(--green)');
+  await renderVersionList();
+}
+
+async function loadVersionsToSelect(selId){
+  const vers=await getVersions();
+  const sel=document.getElementById(selId);
+  if(!sel) return;
+  sel.innerHTML=vers.map(v=>'<option value="'+escAttr(v)+'">'+escHtml(v)+'</option>').join('');
+}
+
+// ══════════════════════════════════════
+// EXCEL EXPORT
+// ══════════════════════════════════════
+window.exportClientExcel = async function(){
+  const btn=document.getElementById('export-cl-btn');
+  if(btn){btn.disabled=true;btn.textContent='匯出中…';}
+  try{
+    const allClients=await fbGet('clients');
+    const allLogs=await fbGet('clientlogs');
+    const users=await getUsers();
+    const userMap={};users.forEach(u=>userMap[u.id]=u.name);
+    if(!allClients){alert('尚無客戶資料');if(btn){btn.disabled=false;btn.textContent='⬇ 匯出客戶Excel';}return}
+
+    // Build rows
+    const rows=[];
+    const headers=['負責人員','人員編號','客戶暱稱','客戶編號','版別','進群日期','進群天數','狀態',
+      '日期','第幾天','做單','YT','探店','任務配合度','出金狀況','今日互動',
+      '財務缺口','職業/時間/資金','慾望/夢想','故事反應','聊天溫度','群組看法',
+      'ABC分類','推進階段','疑問/拒絕原因','備註'];
+    rows.push(headers);
+
+    for(const uid of Object.keys(allClients)){
+      const clients=Object.values(allClients[uid]);
+      for(const c of clients){
+        const days=daysSince(c.joinDate);
+        const clientLogs=allLogs&&allLogs[uid]&&allLogs[uid][c.id]?Object.values(allLogs[uid][c.id]):[];
+        if(!clientLogs.length){
+          // Client with no logs - one row
+          rows.push([userMap[uid]||uid,uid,c.name,c.id,c.ver||'',c.joinDate,days,c.status==='kicked'?'已踢出':'活躍',
+            '','','','','','','','','','','','','','','','','','']);
+        } else {
+          clientLogs.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+          for(const log of clientLogs){
+            rows.push([
+              userMap[uid]||uid, uid, c.name, c.id, c.ver||'', c.joinDate, days, c.status==='kicked'?'已踢出':'活躍',
+              log.date||'', log.days||'',
+              log.dadan?'✓':'', log.yt?'✓':'', log.explore?'✓':'',
+              log.taskReaction||'', log.withdraw||'', log.status||'',
+              log.finance||'', log.job||'', log.dream||'',
+              log.storyReaction||'', log.chatTemp||'', log.groupView||'',
+              log.abc||'', log.stage||'', log.reject||'', log.note||''
+            ]);
+          }
+        }
+      }
+    }
+
+    // Convert to CSV (Excel-compatible with BOM)
+    const csvContent='﻿'+rows.map(row=>
+      row.map(cell=>{
+        const s=String(cell||'').replace(/"/g,'""');
+        return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s+'"':s;
+      }).join(',')
+    ).join('\n');
+
+    const blob=new Blob([csvContent],{type:'text/csv;charset=utf-8'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='客戶追蹤_'+todayStr()+'.csv';
+    a.click();
+    showMsg(document.getElementById('ver-msg')||document.body,'✅ 已匯出','var(--green)');
+  }catch(e){console.error(e);alert('匯出失敗：'+e.message);}
+  if(btn){btn.disabled=false;btn.textContent='⬇ 匯出客戶Excel';}
+}
 
 document.getElementById('li-pw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
 document.getElementById('li-id').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
