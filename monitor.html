@@ -223,7 +223,14 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
       <button class="btn-sm" onclick="doLogout()">登出</button>
     </div>
   </nav>
-  <div class="rbody">
+  <!-- Report page tab bar -->
+  <div style="background:var(--bg2);border-bottom:1px solid var(--line);display:flex;gap:0">
+    <button id="rtab-data" onclick="switchRTab('data')" style="padding:10px 20px;font-size:13px;font-weight:600;color:var(--accent);border:none;border-bottom:2px solid var(--accent);background:transparent;cursor:pointer;transition:all .2s">📊 數據填報</button>
+    <button id="rtab-client" onclick="switchRTab('client')" style="padding:10px 20px;font-size:13px;font-weight:500;color:var(--muted);border:none;border-bottom:2px solid transparent;background:transparent;cursor:pointer;transition:all .2s">👥 客戶追蹤</button>
+  </div>
+
+  <!-- DATA TAB -->
+  <div id="rview-data" class="rbody" style="display:flex;flex-direction:column">
     <div class="sec-label" style="margin-bottom:9px">選擇填報時段</div>
     <div class="slot-tabs" id="slot-tabs"></div>
     <div class="done-banner" id="done-banner">✅ 此時段已完成填報，重新提交即可覆蓋</div>
@@ -317,6 +324,58 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
       <div id="url-already" style="margin-top:14px"></div>
     </div>
   </div>
+
+  <!-- CLIENT TRACKING TAB -->
+  <div id="rview-client" style="display:none;flex:1;padding:20px;max-width:760px;margin:0 auto;width:100%;padding-bottom:40px">
+
+    <!-- 今日任務提醒區 -->
+    <div id="task-alerts" style="margin-bottom:16px"></div>
+
+    <!-- 新增客戶 -->
+    <div class="fcard" style="margin-bottom:14px">
+      <div class="fslabel">➕ 新增客戶</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:12px">
+        <div class="ffield"><label>客戶編號</label><input type="text" id="new-cid" placeholder="例：35260" style="font-size:15px;text-align:left;font-family:var(--mono)"></div>
+        <div class="ffield"><label>客戶暱稱</label><input type="text" id="new-cname" placeholder="例：飛28教育專員" style="font-size:14px;text-align:left"></div>
+        <div class="ffield"><label>進群日期</label><input type="date" id="new-cdate" style="font-size:13px;text-align:left"></div>
+        <div class="ffield"><label>版別</label>
+          <select id="new-cver" style="width:100%;background:#0a0f2a;border:1px solid var(--accent);color:#fff;border-radius:7px;padding:9px 10px;outline:none;font-size:14px">
+            <option value="F">F版</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="btn-sub" onclick="addClient()" style="flex:none;padding:9px 22px;font-size:13px">＋ 新增客戶</button>
+        <span id="client-add-msg" style="font-size:12px;display:none"></span>
+      </div>
+    </div>
+
+    <!-- 客戶列表 -->
+    <div class="fslabel" style="margin-bottom:10px">我的客戶列表</div>
+    <div id="client-list" style="display:flex;flex-direction:column;gap:10px"></div>
+  </div>
+</div>
+
+<!-- CLIENT DAILY LOG MODAL -->
+<div class="modal-bg" id="log-modal">
+  <div class="modal" style="width:420px;max-width:95vw">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h3 id="log-modal-title">填寫今日記錄</h3>
+      <button onclick="closeLogModal()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer">✕</button>
+    </div>
+    <div id="log-task-tip" style="background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#c8c0e8;line-height:1.6"></div>
+    <div class="field"><label>今日客戶狀況</label><textarea id="log-status" rows="3" placeholder="填寫今日互動狀況、客戶反應…" style="width:100%;background:var(--bg3);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:10px 14px;outline:none;font-size:13px;resize:vertical;line-height:1.6"></textarea></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="log-dadan" style="accent-color:var(--accent)"> 做單✓</label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="log-yt" style="accent-color:var(--accent)"> YT✓</label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="log-explore" style="accent-color:var(--accent)"> 探店✓</label>
+    </div>
+    <div class="field"><label>備註（客情資料等）</label><textarea id="log-note" rows="2" placeholder="客戶說了什麼重要訊息…" style="width:100%;background:var(--bg3);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:10px 14px;outline:none;font-size:13px;resize:vertical;line-height:1.6"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeLogModal()">取消</button>
+      <button class="btn-save" onclick="saveLog()">儲存記錄</button>
+    </div>
+  </div>
 </div>
 
 <!-- ADMIN -->
@@ -336,6 +395,7 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
       <div class="aside-item" onclick="aTab('dt',this)"><span class="d" style="background:var(--cyan)"></span>明細查詢</div>
       <div class="aside-item" onclick="aTab('ss',this)"><span class="d" style="background:var(--purple)"></span>截圖查看</div>
       <div class="aside-item" onclick="aTab('us',this)"><span class="d" style="background:var(--green)"></span>人員管理</div>
+      <div class="aside-item" onclick="aTab('cl',this)"><span class="d" style="background:var(--cyan)"></span>客戶總覽</div>
       <div class="aside-item" onclick="aTab('cfg',this)"><span class="d" style="background:var(--amber)"></span>系統設定</div>
     </div>
     <div class="acontent">
@@ -417,6 +477,23 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
           </div>
         </div>
       </div>
+
+      <!-- 客戶總覽 -->
+      <div id="tab-cl" style="display:none">
+        <div class="fbar">
+          <input type="date" id="cl-date" onchange="renderClientAdmin()">
+          <select id="cl-staff" onchange="renderClientAdmin()"><option value="">全部人員</option></select>
+          <select id="cl-day" onchange="renderClientAdmin()">
+            <option value="">全部天數</option>
+            <option value="1">第 1-3 天</option>
+            <option value="4">第 4-7 天</option>
+            <option value="8">第 8-14 天</option>
+            <option value="14">第 14 天以上</option>
+          </select>
+        </div>
+        <div id="cl-content"><div class="empty">載入中…</div></div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -587,6 +664,7 @@ window.doLogout = function(){
 // ── REPORT ──
 function initReport(user){
   document.getElementById('nv-user').textContent=`${user.name} (${user.id})`;
+  document.getElementById('new-cdate').value=today();
   document.getElementById('nv-date').textContent=today();
   renderSlotTabs(user.id);
   selectSlot(SLOTS[0],user.id);
@@ -910,6 +988,7 @@ async function initAdmin(){
   const td=today();
   document.getElementById('ov-date').value=td;
   document.getElementById('ss-date').value=td;
+  document.getElementById('cl-date').value=td;
   if(!document.getElementById('dt-from').value) document.getElementById('dt-from').value=td;
   if(!document.getElementById('dt-to').value) document.getElementById('dt-to').value=td;
   await refreshUserSelects();
@@ -920,7 +999,7 @@ async function initAdmin(){
 
 async function refreshUserSelects(){
   const users=await getUsers();
-  ['ov-user','dt-user','ss-user'].forEach(id=>{
+  ['ov-user','dt-user','ss-user','cl-staff'].forEach(id=>{
     const sel=document.getElementById(id),cur=sel.value;
     sel.innerHTML='<option value="">全部人員</option>';
     users.forEach(u=>{const o=document.createElement('option');o.value=u.id;o.textContent=`${u.name} (${u.id})`;sel.appendChild(o)});
@@ -1252,12 +1331,312 @@ window.exportData = async function(){
 
 window.aTab = function(name,el){
   document.querySelectorAll('.aside-item').forEach(i=>i.classList.remove('on'));el.classList.add('on');
-  ['ov','dt','ss','us','cfg'].forEach(t=>document.getElementById('tab-'+t).style.display=t===name?'block':'none');
+  ['ov','dt','ss','us','cfg','cl'].forEach(t=>document.getElementById('tab-'+t).style.display=t===name?'block':'none');
   if(name==='ov')renderOv();
   if(name==='dt')renderDt();
   if(name==='ss')renderSS();
   if(name==='us')renderUserList();
+  if(name==='cl')renderClientAdmin();
 }
+
+// ══════════════════════════════════════
+// CLIENT TRACKING SYSTEM
+// ══════════════════════════════════════
+
+// Task rules by day range
+const TASK_RULES = [
+  {
+    from:1, to:3,
+    label:'第 1-3 天｜基礎入門',
+    color:'var(--accent)',
+    tasks:[
+      '教會客戶做單任務，帶著他完成第一次',
+      '分享 YT 任務，讓他看影片並回饋心得',
+      '確認客戶進群、了解基本操作',
+    ],
+    tips:'重點是讓客戶「有參與感」，做單和YT都要手把手帶，不要讓他覺得太難。'
+  },
+  {
+    from:4, to:7,
+    label:'第 4-7 天｜建立信任',
+    color:'var(--green)',
+    tasks:[
+      '詢問客戶之前有沒有做過類似的事，了解背景',
+      '教怎麼領錢、Bitopro 操作流程',
+      '問領錢後有什麼規劃、引導說出痛點',
+      '觀察客戶反應，評估是 A/B/C 類',
+    ],
+    tips:'這階段要挖掘客戶的財務目標和痛點，為後續成交鋪路。'
+  },
+  {
+    from:8, to:14,
+    label:'第 8-14 天｜情感鋪墊',
+    color:'var(--amber)',
+    tasks:[
+      '適時切入個人故事鋪墊（單親、替父還債等）',
+      '觀察客戶對故事的反應和判斷',
+      '週末假日準備一個輕鬆話題跟客戶閒聊',
+      '持續跟進做單和探店任務',
+    ],
+    tips:'故事鋪墊要自然，不能太刻意。週末話題可以是時事、美食、旅遊等輕鬆內容。'
+  },
+  {
+    from:15, to:999,
+    label:'第 15 天以上｜每日素材',
+    color:'var(--purple)',
+    tasks:[
+      '每天準備一個素材跟客戶互動（新聞、理財、生活）',
+      '持續觀察出金意願，評估逼單時機',
+      '引導二線，準備成交',
+    ],
+    tips:'每日素材要和客戶的興趣、痛點相關，讓對話自然引導到投資話題。'
+  }
+];
+
+function getDayRule(days){
+  return TASK_RULES.find(r=>days>=r.from && days<=r.to) || TASK_RULES[TASK_RULES.length-1];
+}
+
+function daysSince(dateStr){
+  const joined=new Date(dateStr);
+  const now=new Date();
+  joined.setHours(0,0,0,0); now.setHours(0,0,0,0);
+  return Math.floor((now-joined)/(1000*60*60*24))+1;
+}
+
+// Firebase paths for clients
+function clientPath(uid,cid){return `clients/${uid}/${cid}`}
+function clientLogPath(uid,cid,date){return `clientlogs/${uid}/${cid}/${date.replace(/-/g,'_')}`}
+
+async function getMyClients(uid){
+  const data=await fbGet('clients/'+uid);
+  return data?Object.values(data):[];
+}
+
+// ── INIT CLIENT TAB ──
+async function initClientTab(uid){
+  await renderClientList(uid);
+  renderTaskAlerts(uid);
+}
+
+// Render today's task alerts at top
+async function renderTaskAlerts(uid){
+  const clients=await getMyClients(uid);
+  const el=document.getElementById('task-alerts');
+  if(!clients.length){el.innerHTML='';return}
+
+  const today=todayStr();
+  let html='';
+  for(const c of clients){
+    if(c.status==='kicked') continue;
+    const days=daysSince(c.joinDate);
+    const rule=getDayRule(days);
+    // Check if today's log done
+    const log=await fbGet(clientLogPath(uid,c.id,today));
+    if(log) continue; // already logged today
+    html+=`<div style="background:linear-gradient(135deg,rgba(${rule.color==='var(--accent)'?'79,142,247':rule.color==='var(--green)'?'61,214,140':rule.color==='var(--amber)'?'244,185,66':'167,139,250'},.12),transparent);border:1px solid ${rule.color};border-radius:10px;padding:12px 14px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <div>
+          <span style="font-size:12px;color:${rule.color};font-weight:600">${rule.label}</span>
+          <span style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-left:8px">第 ${days} 天</span>
+          <div style="font-size:14px;font-weight:500;margin-top:2px">${c.name} <span style="font-size:11px;color:var(--muted);font-family:var(--mono)">#${c.id}</span></div>
+        </div>
+        <button onclick="openLogModal('${c.id}','${c.name}',${days},'${uid}')" style="background:${rule.color};color:#fff;border:none;border-radius:7px;padding:6px 14px;cursor:pointer;font-size:12px;font-weight:600">📝 填今日記錄</button>
+      </div>
+      <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">
+        ${rule.tasks.map(t=>`<span style="font-size:11px;background:rgba(255,255,255,.06);border-radius:4px;padding:2px 8px;color:var(--text)">• ${t}</span>`).join('')}
+      </div>
+    </div>`;
+  }
+  el.innerHTML=html||'<div style="font-size:12px;color:var(--green);padding:8px 0">✅ 所有客戶今日記錄已完成</div>';
+}
+
+// Render client list
+async function renderClientList(uid){
+  const clients=await getMyClients(uid);
+  const el=document.getElementById('client-list');
+  if(!clients.length){
+    el.innerHTML='<div style="color:var(--dim);font-size:13px;padding:16px;text-align:center">尚無客戶，請先新增</div>';
+    return;
+  }
+  const today=todayStr();
+  let html='';
+  for(const c of clients){
+    const days=daysSince(c.joinDate);
+    const rule=getDayRule(days);
+    const log=await fbGet(clientLogPath(uid,c.id,today));
+    const kicked=c.status==='kicked';
+    html+=`<div style="background:var(--bg2);border:1px solid ${kicked?'var(--line)':rule.color};border-radius:12px;padding:14px 16px;opacity:${kicked?'.5':'1'}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap">
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+            <span style="font-weight:600;font-size:15px">${c.name}</span>
+            <span style="font-size:11px;color:var(--muted);font-family:var(--mono)">#${c.id}</span>
+            <span style="font-size:11px;background:rgba(255,255,255,.06);border-radius:4px;padding:1px 7px;color:${rule.color}">第 ${days} 天</span>
+            ${kicked?'<span style="font-size:11px;color:var(--red);background:rgba(244,96,96,.1);border-radius:4px;padding:1px 7px">已踢出</span>':''}
+            ${log?'<span style="font-size:11px;color:var(--green)">✅ 今日已記錄</span>':'<span style="font-size:11px;color:var(--amber)">⏳ 待記錄</span>'}
+          </div>
+          <div style="font-size:11px;color:var(--muted)">進群：${c.joinDate} ｜ ${rule.label}</div>
+          ${log&&log.status?`<div style="font-size:12px;color:var(--text);margin-top:5px;background:var(--bg3);border-radius:6px;padding:6px 10px">${log.status}</div>`:''}
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap">
+          ${!kicked?`<button onclick="openLogModal('${c.id}','${c.name}',${days},'${uid}')" style="background:rgba(79,142,247,.12);border:1px solid var(--accent);color:var(--accent);border-radius:6px;padding:4px 11px;cursor:pointer;font-size:12px">📝 記錄</button>`:''}
+          <button onclick="toggleKickClient('${uid}','${c.id}','${!kicked}')" style="background:transparent;border:1px solid var(--line2);color:var(--muted);border-radius:6px;padding:4px 11px;cursor:pointer;font-size:12px">${kicked?'恢復':'踢出'}</button>
+        </div>
+      </div>
+    </div>`;
+  }
+  el.innerHTML=html;
+}
+
+// Add client
+window.addClient = async function(){
+  const s=getSession();if(!s)return;
+  const cid=document.getElementById('new-cid').value.trim();
+  const cname=document.getElementById('new-cname').value.trim();
+  const cdate=document.getElementById('new-cdate').value;
+  const cver=document.getElementById('new-cver').value;
+  const msg=document.getElementById('client-add-msg');
+  if(!cid||!cname||!cdate){showMsg(msg,'⚠ 請填寫編號、暱稱和進群日期','var(--amber)');return}
+  const existing=await fbGet(clientPath(s.uid,cid));
+  if(existing){showMsg(msg,'⚠ 此編號已存在','var(--red)');return}
+  await fbSet(clientPath(s.uid,cid),{id:cid,name:cname,joinDate:cdate,ver:cver,status:'active',createdAt:Date.now()});
+  ['new-cid','new-cname','new-cdate'].forEach(k=>document.getElementById(k).value='');
+  showMsg(msg,'✅ 新增成功','var(--green)');
+  await renderClientList(s.uid);
+  await renderTaskAlerts(s.uid);
+}
+
+// Toggle kick status
+window.toggleKickClient = async function(uid,cid,setActive){
+  const status=setActive==='true'?'active':'kicked';
+  await fbSet(`clients/${uid}/${cid}/status`,status);
+  await renderClientList(uid);
+  await renderTaskAlerts(uid);
+}
+
+// Log modal
+let logModalCtx={uid:'',cid:'',days:0};
+window.openLogModal = function(cid,cname,days,uid){
+  logModalCtx={uid,cid,days};
+  const rule=getDayRule(days);
+  document.getElementById('log-modal-title').textContent=`${cname} — 第 ${days} 天`;
+  document.getElementById('log-task-tip').innerHTML=
+    `<div style="font-size:12px;font-weight:600;color:${rule.color};margin-bottom:6px">${rule.label}</div>`+
+    rule.tasks.map(t=>`<div>• ${t}</div>`).join('')+
+    `<div style="margin-top:6px;color:var(--muted);font-size:11px">💡 ${rule.tips}</div>`;
+  ['log-status','log-note'].forEach(k=>document.getElementById(k).value='');
+  ['log-dadan','log-yt','log-explore'].forEach(k=>document.getElementById(k).checked=false);
+  // Load today's existing log
+  fbGet(clientLogPath(uid,cid,todayStr())).then(log=>{
+    if(log){
+      document.getElementById('log-status').value=log.status||'';
+      document.getElementById('log-note').value=log.note||'';
+      document.getElementById('log-dadan').checked=log.dadan||false;
+      document.getElementById('log-yt').checked=log.yt||false;
+      document.getElementById('log-explore').checked=log.explore||false;
+    }
+  });
+  document.getElementById('log-modal').classList.add('on');
+}
+window.closeLogModal = function(){document.getElementById('log-modal').classList.remove('on')}
+
+window.saveLog = async function(){
+  const {uid,cid,days}=logModalCtx;
+  const log={
+    date:todayStr(),
+    days,
+    status:document.getElementById('log-status').value.trim(),
+    note:document.getElementById('log-note').value.trim(),
+    dadan:document.getElementById('log-dadan').checked,
+    yt:document.getElementById('log-yt').checked,
+    explore:document.getElementById('log-explore').checked,
+    ts:Date.now()
+  };
+  await fbSet(clientLogPath(uid,cid,todayStr()),log);
+  closeLogModal();
+  showMsg(document.getElementById('client-add-msg'),'✅ 記錄已儲存','var(--green)');
+  await renderClientList(uid);
+  await renderTaskAlerts(uid);
+}
+
+// Switch report tabs
+window.switchRTab = function(tab){
+  const s=getSession();
+  document.getElementById('rview-data').style.display=tab==='data'?'flex':'none';
+  document.getElementById('rview-client').style.display=tab==='client'?'block':'none';
+  const dataBtn=document.getElementById('rtab-data');
+  const clientBtn=document.getElementById('rtab-client');
+  if(tab==='data'){
+    dataBtn.style.color='var(--accent)';dataBtn.style.borderBottom='2px solid var(--accent)';
+    clientBtn.style.color='var(--muted)';clientBtn.style.borderBottom='2px solid transparent';
+  } else {
+    clientBtn.style.color='var(--accent)';clientBtn.style.borderBottom='2px solid var(--accent)';
+    dataBtn.style.color='var(--muted)';dataBtn.style.borderBottom='2px solid transparent';
+    if(s) initClientTab(s.uid);
+  }
+}
+
+// ── ADMIN CLIENT VIEW ──
+window.renderClientAdmin = async function(){
+  const date=document.getElementById('cl-date').value||todayStr();
+  const staffUid=document.getElementById('cl-staff').value;
+  const dayFilter=document.getElementById('cl-day').value;
+  const el=document.getElementById('cl-content');
+  el.innerHTML='<div class="empty">載入中…</div>';
+
+  const allClients=await fbGet('clients');
+  if(!allClients){el.innerHTML='<div class="empty">尚無客戶資料</div>';return}
+
+  const users=await getUsers();
+  const userMap={};users.forEach(u=>userMap[u.id]=u.name);
+
+  let rows=[];
+  for(const uid of Object.keys(allClients)){
+    if(staffUid&&uid!==staffUid) continue;
+    const clients=Object.values(allClients[uid]);
+    for(const c of clients){
+      const days=daysSince(c.joinDate);
+      if(dayFilter){
+        const f=parseInt(dayFilter);
+        if(f===1&&!(days>=1&&days<=3)) continue;
+        if(f===4&&!(days>=4&&days<=7)) continue;
+        if(f===8&&!(days>=8&&days<=14)) continue;
+        if(f===14&&!(days>=15)) continue;
+      }
+      const log=await fbGet(clientLogPath(uid,c.id,date));
+      const rule=getDayRule(days);
+      rows.push({uid,staffName:userMap[uid]||uid,c,days,log,rule});
+    }
+  }
+
+  if(!rows.length){el.innerHTML='<div class="empty">此條件無客戶資料</div>';return}
+  rows.sort((a,b)=>a.days-b.days);
+
+  el.innerHTML=rows.map(({uid,staffName,c,days,log,rule})=>`
+    <div style="background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px 15px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-weight:600">${c.name}</span>
+          <span style="font-size:11px;color:var(--muted);font-family:var(--mono)">#${c.id}</span>
+          <span style="font-size:11px;color:${rule.color};background:rgba(255,255,255,.05);border-radius:4px;padding:1px 7px">第 ${days} 天</span>
+          <span style="font-size:11px;color:var(--muted)">負責：${staffName}</span>
+        </div>
+        <span style="font-size:12px;color:${log?'var(--green)':'var(--amber)'}">${log?'✅ 已記錄':'⏳ 未記錄'}</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:4px">${rule.label}｜進群：${c.joinDate}</div>
+      ${log?`<div style="font-size:12px;color:var(--text);background:var(--bg3);border-radius:6px;padding:7px 10px;margin-top:6px">
+        <span style="color:var(--muted)">今日狀況：</span>${log.status||'—'}<br>
+        <span style="color:var(--muted)">做單：</span>${log.dadan?'✓':'—'}&nbsp;&nbsp;
+        <span style="color:var(--muted)">YT：</span>${log.yt?'✓':'—'}&nbsp;&nbsp;
+        <span style="color:var(--muted)">探店：</span>${log.explore?'✓':'—'}
+        ${log.note?`<br><span style="color:var(--muted)">備註：</span>${log.note}`:''}
+      </div>`:''}
+    </div>`).join('');
+}
+
+// Helper: todayStr (same as today())
+function todayStr(){ return today(); }
 
 document.getElementById('li-pw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
 document.getElementById('li-id').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
