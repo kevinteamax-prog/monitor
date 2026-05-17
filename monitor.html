@@ -487,8 +487,14 @@ function ssPath(date,uid,slot,type){return `screenshots_${type}/${date.replace(/
 function groupPath(date,uid,slot){return `groupurls/${date.replace(/-/g,'_')}/${uid}/${slot.replace(':','')}`}
 
 // ── INIT ──
+function hideLoading(){ document.getElementById('loading').style.display='none'; }
+
 async function init(){
   document.getElementById('loading').style.display='flex';
+
+  // Timeout fallback — if stuck for 8 seconds, go to login
+  const timeout = setTimeout(()=>{ hideLoading(); clearSession(); showPg('pg-login'); }, 8000);
+
   onValue(ref(db,'.info/connected'),snap=>{
     const ok=snap.val();
     ['sync-chip','admin-sync-chip'].forEach(id=>{
@@ -496,20 +502,28 @@ async function init(){
       if(el){el.textContent=ok?'🟢 雲端同步':'🔴 連線中斷';el.style.color=ok?'var(--green)':'var(--red)'}
     });
   });
+
   try{
     const s=getSession();
     if(s){
-      if(s.role==='admin'){await initAdmin();document.getElementById('loading').style.display='none';showPg('pg-admin');return}
+      if(s.role==='admin'){
+        await initAdmin();
+        clearTimeout(timeout); hideLoading(); showPg('pg-admin'); return;
+      }
       if(s.role==='staff'){
         const users=await getUsers();
         const user=users.find(u=>u.id===s.uid);
-        if(user){initReport(user);document.getElementById('loading').style.display='none';showPg('pg-report');return}
-        else clearSession();
+        if(user){
+          initReport(user);
+          clearTimeout(timeout); hideLoading(); showPg('pg-report'); return;
+        } else clearSession();
       }
     }
-  }catch(e){console.error(e)}
-  document.getElementById('loading').style.display='none';
-  showPg('pg-login');
+  }catch(e){
+    console.error('init error:',e);
+    clearSession();
+  }
+  clearTimeout(timeout); hideLoading(); showPg('pg-login');
 }
 
 // ── LOGIN ──
@@ -1038,8 +1052,12 @@ window.previewDeleteDate = async function(){
   const dateKey = date.replace(/-/g,'_');
   const all = await getRecsFlat();
   const recs = all.filter(r=>r.date===date);
-  const ssData = await fbGet('screenshots');
-  const ssKeys = ssData ? Object.keys(ssData).filter(k=>k.startsWith(dateKey+'_')) : [];
+  // Check both fb and th screenshot types
+  const ssFb=await fbGet('screenshots_fb')||{};
+  const ssTh=await fbGet('screenshots_th')||{};
+  const ssKeysFb=Object.keys(ssFb).filter(k=>k.startsWith(dateKey+'_'));
+  const ssKeysTh=Object.keys(ssTh).filter(k=>k.startsWith(dateKey+'_'));
+  const ssKeys=[...new Set([...ssKeysFb,...ssKeysTh])];
 
   if(!recs.length && !ssKeys.length){
     el.innerHTML='<div style="color:var(--muted);font-size:13px;padding:12px;background:var(--bg3);border-radius:8px">此日期無任何數據</div>';
@@ -1084,9 +1102,18 @@ window.deleteSingleRec = async function(date, uid, slot, ssKey, btn){
   try{
     // Delete record
     await fbRemove(recPath(date,uid,slot));
-    // Delete screenshots if exist
-    const ssData = await fbGet('screenshots/'+ssKey);
-    if(ssData) await fbRemove('screenshots/'+ssKey);
+    // Delete screenshots (fb + th) if exist
+    for(const t of ['screenshots_fb','screenshots_th']){
+      const ssData=await fbGet(t+'/'+ssKey);
+      if(ssData) await fbRemove(t+'/'+ssKey);
+    }
+    // Delete group urls if exist
+    const parts=ssKey.split('_');
+    if(parts.length>=5){
+      const d=parts.slice(0,3).join('_'); const u=parts[3]; const sl=parts[4];
+      const urlData=await fbGet('groupurls/'+d+'/'+u+'/'+sl);
+      if(urlData) await fbRemove('groupurls/'+d+'/'+u+'/'+sl);
+    }
     // Remove the row from preview
     btn.closest('div[style*="background:var(--bg3)"]').remove();
     // Check if preview is now empty
