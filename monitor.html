@@ -245,20 +245,50 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
       </div>
     </div>
 
-    <!-- 截圖上傳 -->
+    <!-- FB截圖 -->
     <div class="fcard">
-      <div class="fslabel">📸 臉書發文截圖回報（每時段最多 5 張）</div>
-      <div id="img-preview-wrap" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px"></div>
+      <div class="fslabel">📘 臉書發文截圖回報（每時段最多 5 張）</div>
+      <div id="fb-preview-wrap" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px"></div>
       <label class="img-upload-zone">
         <span style="font-size:18px">＋</span>
-        <span id="img-hint">點擊選擇截圖（可多選，最多 5 張）</span>
-        <input type="file" id="img-input" accept="image/*" multiple style="display:none" onchange="handleImgSelect(event)">
+        <span id="fb-hint">點擊選擇截圖（可多選，最多 5 張）</span>
+        <input type="file" id="fb-input" accept="image/*" multiple style="display:none" onchange="handleImgSelect(event,'fb')">
       </label>
       <div style="display:flex;align-items:center;gap:10px;margin-top:12px">
-        <button class="btn-sub" id="img-btn" onclick="uploadImgs()" style="flex:none;padding:9px 22px;font-size:13px">⬆ 上傳截圖</button>
-        <span id="img-msg" style="font-size:12px;display:none"></span>
+        <button class="btn-sub" id="fb-btn" onclick="uploadImgs('fb')" style="flex:none;padding:9px 22px;font-size:13px">⬆ 上傳 FB 截圖</button>
+        <span id="fb-msg" style="font-size:12px;display:none"></span>
       </div>
-      <div id="already-imgs" style="margin-top:14px"></div>
+      <div id="fb-already-imgs" style="margin-top:14px"></div>
+    </div>
+
+    <!-- Threads截圖 -->
+    <div class="fcard">
+      <div class="fslabel">🧵 Threads 發文截圖回報（每時段最多 5 張）</div>
+      <div id="th-preview-wrap" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px"></div>
+      <label class="img-upload-zone">
+        <span style="font-size:18px">＋</span>
+        <span id="th-hint">點擊選擇截圖（可多選，最多 5 張）</span>
+        <input type="file" id="th-input" accept="image/*" multiple style="display:none" onchange="handleImgSelect(event,'th')">
+      </label>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:12px">
+        <button class="btn-sub" id="th-btn" onclick="uploadImgs('th')" style="flex:none;padding:9px 22px;font-size:13px">⬆ 上傳 Threads 截圖</button>
+        <span id="th-msg" style="font-size:12px;display:none"></span>
+      </div>
+      <div id="th-already-imgs" style="margin-top:14px"></div>
+    </div>
+
+    <!-- 社團網址 -->
+    <div class="fcard">
+      <div class="fslabel">👥 新增社團網址回報</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px">每行貼上一個社團網址，提交後後台可查看</div>
+      <textarea id="group-urls" rows="4" placeholder="https://www.facebook.com/groups/xxxxx&#10;https://www.facebook.com/groups/yyyyy"
+        style="width:100%;background:#0a0f2a;border:1px solid var(--accent);color:#fff;border-radius:8px;padding:10px 14px;outline:none;font-size:13px;font-family:var(--mono);resize:vertical;line-height:1.6;transition:border-color .2s"
+        onfocus="this.style.borderColor='#7eb3ff'" onblur="this.style.borderColor='var(--accent)'"></textarea>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:12px">
+        <button class="btn-sub" id="url-btn" onclick="submitGroupUrls()" style="flex:none;padding:9px 22px;font-size:13px">✓ 提交社團網址</button>
+        <span id="url-msg" style="font-size:12px;display:none"></span>
+      </div>
+      <div id="url-already" style="margin-top:14px"></div>
     </div>
   </div>
 </div>
@@ -304,14 +334,19 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
         </div>
         <div class="dtw"><table><thead><tr><th>日期</th><th>時段</th><th>人員</th><th>FB社團</th><th>FB發文</th><th>Threads</th><th>引流LINE</th><th>無效詢問</th><th>未滿</th><th>拒絕</th><th>引導二線</th><th>成功開戶</th><th>有效客戶</th><th>有效月支</th></tr></thead><tbody id="dt-tbody"></tbody></table></div>
       </div>
-      <!-- 截圖查看 -->
+      <!-- 截圖 & 社團查看 -->
       <div id="tab-ss" style="display:none">
         <div class="fbar">
           <input type="date" id="ss-date" onchange="renderSS()">
           <select id="ss-user" onchange="renderSS()"><option value="">全部人員</option></select>
           <select id="ss-slot" onchange="renderSS()"><option value="">全部時段</option><option>11:00</option><option>13:00</option><option>15:00</option><option>17:30</option><option>19:00</option><option>21:00</option></select>
         </div>
-        <div id="ss-content"><div class="empty">選擇日期後顯示截圖</div></div>
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+          <button id="ss-tab-fb" onclick="setSsType('fb')" style="background:rgba(79,142,247,.15);border:1px solid var(--accent);color:var(--accent);border-radius:7px;padding:6px 16px;cursor:pointer;font-size:13px;font-weight:500">📘 FB 截圖</button>
+          <button id="ss-tab-th" onclick="setSsType('th')" style="background:transparent;border:1px solid var(--line2);color:var(--muted);border-radius:7px;padding:6px 16px;cursor:pointer;font-size:13px">🧵 Threads 截圖</button>
+          <button id="ss-tab-url" onclick="setSsType('url')" style="background:transparent;border:1px solid var(--line2);color:var(--muted);border-radius:7px;padding:6px 16px;cursor:pointer;font-size:13px">👥 社團網址</button>
+        </div>
+        <div id="ss-content"><div class="empty">選擇日期後顯示內容</div></div>
       </div>
       <!-- 人員管理 -->
       <div id="tab-us" style="display:none">
@@ -336,6 +371,18 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
             <button class="btn-add" onclick="changeAdminPw()">儲存密碼</button>
             <span id="pw-msg" class="imsg"></span>
           </div>
+        </div>
+        <div class="sccard">
+          <div class="sccard-t">按日期刪除數據</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:14px">選擇要刪除的日期，逐一確認後刪除，不會一次清除全部。</div>
+          <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px">
+            <div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:5px;letter-spacing:.05em">選擇日期</div>
+              <input type="date" id="del-date" style="background:var(--bg3);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:7px 12px;outline:none;font-size:13px">
+            </div>
+            <button class="btn-sm" onclick="previewDeleteDate()" style="color:var(--amber);border-color:var(--amber)">🔍 預覽此日數據</button>
+          </div>
+          <div id="del-preview"></div>
         </div>
         <div class="sccard">
           <div class="sccard-t">資料管理</div>
@@ -392,7 +439,7 @@ const CLEAR_FIELDS = [3,4,5,6,7,8,9,10]; // f3~f10: LINE引流、無效詢問、
 const SK_SESSION = 'dp_session';
 let CUR_SLOT = SLOTS[0];
 let editIdx = -1;
-let pendingImgs = []; // {file, dataUrl}
+let pendingImgs = {fb:[], th:[]}; // fb/th pending images
 
 function today(){const n=new Date();return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`}
 function showPg(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));document.getElementById(id).classList.add('on')}
@@ -436,7 +483,8 @@ async function getRec(date,uid,slot){return fbGet(recPath(date,uid,slot))}
 async function saveRec(rec){await fbSet(recPath(rec.date,rec.uid,rec.slot),rec)}
 
 // Screenshots — stored as base64 under screenshots/date_uid_slot/0..4
-function ssPath(date,uid,slot){return `screenshots/${date.replace(/-/g,'_')}_${uid}_${slot.replace(':','')}`}
+function ssPath(date,uid,slot,type){return `screenshots_${type}/${date.replace(/-/g,'_')}_${uid}_${slot.replace(':','')}`}
+function groupPath(date,uid,slot){return `groupurls/${date.replace(/-/g,'_')}/${uid}/${slot.replace(':','')}`}
 
 // ── INIT ──
 async function init(){
@@ -547,20 +595,32 @@ async function selectSlot(slot,uid){
   }
 
   // 重置截圖區
-  pendingImgs=[];
-  renderPendingImgs();
-  document.getElementById('img-input').value='';
+  pendingImgs={fb:[],th:[]};
+  renderPendingImgs('fb'); renderPendingImgs('th');
+  document.getElementById('fb-input').value='';
+  document.getElementById('th-input').value='';
 
-  // 載入已上傳截圖
-  const existing=await fbGet(ssPath(today(),uid,slot));
-  const wrap=document.getElementById('already-imgs');
-  if(existing){
-    const imgs=Object.values(existing);
-    wrap.innerHTML=`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-family:var(--mono)">已上傳 ${imgs.length} 張截圖</div><div style="display:flex;flex-wrap:wrap;gap:8px">`+
-      imgs.map(src=>`<img src="${src}" style="width:90px;height:68px;object-fit:cover;border-radius:6px;border:1px solid var(--line2);cursor:pointer" onclick="openLightbox(this.src)">`).join('')+`</div>`;
-  } else {
-    wrap.innerHTML='';
+  // 載入已上傳 FB 截圖
+  for(const type of ['fb','th']){
+    const existing=await fbGet(ssPath(today(),uid,slot,type));
+    const wrap=document.getElementById(type+'-already-imgs');
+    if(existing){
+      const imgs=Object.values(existing);
+      wrap.innerHTML=`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-family:var(--mono)">已上傳 ${imgs.length} 張</div><div style="display:flex;flex-wrap:wrap;gap:8px">`+
+        imgs.map(src=>`<img src="${src}" style="width:90px;height:68px;object-fit:cover;border-radius:6px;border:1px solid var(--line2);cursor:pointer" onclick="openLightbox(this.src)">`).join('')+`</div>`;
+    } else { wrap.innerHTML=''; }
   }
+
+  // 載入社團網址
+  const existingUrls=await fbGet(groupPath(today(),uid,slot));
+  const urlWrap=document.getElementById('url-already');
+  const urlBox=document.getElementById('group-urls');
+  if(existingUrls){
+    const urls=Object.values(existingUrls);
+    urlBox.value='';
+    urlWrap.innerHTML=`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-family:var(--mono)">已提交 ${urls.length} 個社團網址</div>`+
+      urls.map(u=>`<div style="font-size:12px;font-family:var(--mono);padding:5px 10px;background:rgba(79,142,247,.08);border:1px solid rgba(79,142,247,.2);border-radius:6px;margin-bottom:5px;word-break:break-all"><a href="${u}" target="_blank" style="color:var(--accent);text-decoration:none">${u}</a></div>`).join('');
+  } else { urlWrap.innerHTML=''; urlBox.value=''; }
 }
 
 window.submitSlot = async function(){
@@ -581,77 +641,102 @@ window.submitSlot = async function(){
 }
 
 // ── SCREENSHOTS ──
-window.handleImgSelect = function(e){
-  const files=Array.from(e.target.files);
-  const remaining=5-pendingImgs.length;
-  const toAdd=files.slice(0,remaining);
-  toAdd.forEach(file=>{
-    const reader=new FileReader();
-    reader.onload=ev=>{
-      // Compress image
-      const img=new Image();
-      img.onload=()=>{
-        const canvas=document.createElement('canvas');
-        const MAX=800;
-        let w=img.width,h=img.height;
-        if(w>MAX){h=Math.round(h*MAX/w);w=MAX}
-        if(h>MAX){w=Math.round(w*MAX/h);h=MAX}
-        canvas.width=w;canvas.height=h;
-        canvas.getContext('2d').drawImage(img,0,0,w,h);
-        const dataUrl=canvas.toDataURL('image/jpeg',0.7);
-        pendingImgs.push({name:file.name,dataUrl});
-        renderPendingImgs();
-      };
-      img.src=ev.target.result;
+function compressImg(file,cb){
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      const canvas=document.createElement('canvas');
+      const MAX=900; let w=img.width,h=img.height;
+      if(w>MAX){h=Math.round(h*MAX/w);w=MAX}
+      if(h>MAX){w=Math.round(w*MAX/h);h=MAX}
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      cb(canvas.toDataURL('image/jpeg',0.72));
     };
-    reader.readAsDataURL(file);
-  });
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+window.handleImgSelect = function(e,type){
+  const files=Array.from(e.target.files);
+  const remaining=5-pendingImgs[type].length;
+  const toAdd=files.slice(0,remaining);
+  toAdd.forEach(file=>compressImg(file,dataUrl=>{
+    pendingImgs[type].push({name:file.name,dataUrl});
+    renderPendingImgs(type);
+  }));
   if(files.length>remaining) alert(`最多只能上傳 5 張，已取前 ${remaining} 張`);
 }
 
-function renderPendingImgs(){
-  const wrap=document.getElementById('img-preview-wrap');
-  wrap.innerHTML=pendingImgs.map((img,i)=>`
+function renderPendingImgs(type){
+  const wrap=document.getElementById(type+'-preview-wrap');
+  wrap.innerHTML=pendingImgs[type].map((img,i)=>`
     <div class="img-thumb-wrap">
       <img class="img-thumb" src="${img.dataUrl}">
-      <button class="img-thumb-del" onclick="removeImg(${i})">✕</button>
+      <button class="img-thumb-del" onclick="removeImg('${type}',${i})">✕</button>
     </div>`).join('');
-  const hint=document.getElementById('img-hint');
-  hint.textContent=pendingImgs.length>=5?'已達上限 5 張':`點擊選擇截圖（已選 ${pendingImgs.length}/5）`;
+  const hint=document.getElementById(type+'-hint');
+  const n=pendingImgs[type].length;
+  hint.textContent=n>=5?'已達上限 5 張':`點擊選擇截圖（已選 ${n}/5）`;
 }
 
-window.removeImg = function(i){pendingImgs.splice(i,1);renderPendingImgs()}
+window.removeImg = function(type,i){pendingImgs[type].splice(i,1);renderPendingImgs(type)}
 
-window.uploadImgs = async function(){
+window.uploadImgs = async function(type){
   const s=getSession();if(!s)return;
-  if(pendingImgs.length===0){alert('請先選擇截圖');return}
+  const imgs=pendingImgs[type];
+  if(!imgs.length){alert('請先選擇截圖');return}
   const users=await getUsers();
   const user=users.find(u=>u.id===s.uid);if(!user)return;
-  const btn=document.getElementById('img-btn');
+  const btn=document.getElementById(type+'-btn');
+  const msg=document.getElementById(type+'-msg');
   btn.disabled=true;btn.textContent='上傳中…';
-  const msg=document.getElementById('img-msg');
   try{
-    const path=ssPath(today(),user.id,CUR_SLOT);
-    // Get existing count
+    const path=ssPath(today(),user.id,CUR_SLOT,type);
     const existing=await fbGet(path);
     const startIdx=existing?Object.keys(existing).length:0;
-    const total=startIdx+pendingImgs.length;
-    if(total>5){
+    if(startIdx+imgs.length>5){
       showMsg(msg,`⚠ 此時段已有 ${startIdx} 張，最多 5 張`,'var(--amber)');
-      btn.disabled=false;btn.textContent='⬆ 上傳截圖';return;
+      btn.disabled=false;btn.textContent=`⬆ 上傳 ${type==='fb'?'FB':'Threads'} 截圖`;return;
     }
-    for(let i=0;i<pendingImgs.length;i++){
-      await fbSet(`${path}/${startIdx+i}`,pendingImgs[i].dataUrl);
-    }
-    showMsg(msg,`✅ 上傳成功 ${pendingImgs.length} 張`,'var(--green)');
-    pendingImgs=[];renderPendingImgs();
-    document.getElementById('img-input').value='';
-    // Refresh existing display
+    for(let i=0;i<imgs.length;i++) await fbSet(`${path}/${startIdx+i}`,imgs[i].dataUrl);
+    showMsg(msg,`✅ 上傳成功 ${imgs.length} 張`,'var(--green)');
+    pendingImgs[type]=[];renderPendingImgs(type);
+    document.getElementById(type+'-input').value='';
     await selectSlot(CUR_SLOT,user.id);
   }catch(e){
     console.error(e);showMsg(msg,'❌ 上傳失敗，請重試','var(--red)');
   }
-  btn.disabled=false;btn.textContent='⬆ 上傳截圖';
+  btn.disabled=false;btn.textContent=`⬆ 上傳 ${type==='fb'?'FB':'Threads'} 截圖`;
+}
+
+// ── GROUP URLS ──
+window.submitGroupUrls = async function(){
+  const s=getSession();if(!s)return;
+  const raw=document.getElementById('group-urls').value.trim();
+  if(!raw){alert('請先貼上社團網址');return}
+  const urls=raw.split('
+').map(u=>u.trim()).filter(u=>u.length>0);
+  if(!urls.length){alert('請輸入有效網址');return}
+  const users=await getUsers();
+  const user=users.find(u=>u.id===s.uid);if(!user)return;
+  const btn=document.getElementById('url-btn');
+  const msg=document.getElementById('url-msg');
+  btn.disabled=true;btn.textContent='儲存中…';
+  try{
+    const path=groupPath(today(),user.id,CUR_SLOT);
+    const existing=await fbGet(path);
+    const startIdx=existing?Object.keys(existing).length:0;
+    for(let i=0;i<urls.length;i++) await fbSet(`${path}/${startIdx+i}`,urls[i]);
+    showMsg(msg,`✅ 已儲存 ${urls.length} 個網址`,'var(--green)');
+    document.getElementById('group-urls').value='';
+    await selectSlot(CUR_SLOT,user.id);
+  }catch(e){
+    console.error(e);showMsg(msg,'❌ 儲存失敗，請重試','var(--red)');
+  }
+  btn.disabled=false;btn.textContent='✓ 提交社團網址';
 }
 
 window.openLightbox = function(src){
@@ -664,18 +749,28 @@ window.closeLightbox = function(){document.getElementById('lightbox').classList.
 // 自動清除 3 天前截圖
 async function cleanOldScreenshots(){
   try{
-    const allSS=await fbGet('screenshots');
-    if(!allSS) return;
     const cutoff=new Date();
     cutoff.setDate(cutoff.getDate()-3);
-    for(const key of Object.keys(allSS)){
-      // key format: yyyy_mm_dd_uid_slotkey
-      const parts=key.split('_');
-      if(parts.length<5) continue;
-      const dateStr=parts.slice(0,3).join('-'); // yyyy-mm-dd
-      if(dateStr<cutoff.toISOString().slice(0,10)){
-        await fbRemove('screenshots/'+key);
-        console.log('Cleaned old screenshots:',key);
+    const cutoffStr=cutoff.toISOString().slice(0,10);
+    for(const type of ['screenshots_fb','screenshots_th']){
+      const allSS=await fbGet(type);
+      if(!allSS) continue;
+      for(const key of Object.keys(allSS)){
+        const parts=key.split('_');
+        if(parts.length<5) continue;
+        const dateStr=parts.slice(0,3).join('-');
+        if(dateStr<cutoffStr){
+          await fbRemove(type+'/'+key);
+          console.log('Cleaned:',type,key);
+        }
+      }
+    }
+    // Also clean old group urls (keep 3 days)
+    const allUrls=await fbGet('groupurls');
+    if(allUrls){
+      for(const dateKey of Object.keys(allUrls)){
+        const dateStr=dateKey.replace(/_/g,'-');
+        if(dateStr<cutoffStr){ await fbRemove('groupurls/'+dateKey); }
       }
     }
   }catch(e){console.error('cleanOldScreenshots error',e)}
@@ -771,40 +866,93 @@ function renderTbl(id,recs){
   </tr>`}).join('');
 }
 
-// ── SCREENSHOT ADMIN VIEW ──
+// ── SCREENSHOT & URL ADMIN VIEW ──
+let curSsType = 'fb';
+
+window.setSsType = function(type){
+  curSsType = type;
+  ['fb','th','url'].forEach(t=>{
+    const btn = document.getElementById('ss-tab-'+t);
+    if(t===type){
+      btn.style.background='rgba(79,142,247,.15)';
+      btn.style.border='1px solid var(--accent)';
+      btn.style.color='var(--accent)';
+      btn.style.fontWeight='500';
+    } else {
+      btn.style.background='transparent';
+      btn.style.border='1px solid var(--line2)';
+      btn.style.color='var(--muted)';
+      btn.style.fontWeight='400';
+    }
+  });
+  renderSS();
+}
+
+function parseKey(key){
+  // key: yyyy_mm_dd_uid_slotkey
+  const parts=key.split('_');
+  if(parts.length<5) return null;
+  const recDate=parts.slice(0,3).join('-');
+  const recUid=parts[3];
+  const slotRaw=parts[4];
+  const recSlot=slotRaw.length===4?slotRaw.slice(0,2)+':'+slotRaw.slice(2):slotRaw;
+  return {recDate,recUid,recSlot};
+}
+
 window.renderSS = async function(){
   const date=document.getElementById('ss-date').value||today();
   const uid=document.getElementById('ss-user').value;
   const slot=document.getElementById('ss-slot').value;
   const el=document.getElementById('ss-content');
   el.innerHTML='<div class="empty">載入中…</div>';
-
-  const allSS=await fbGet('screenshots');
-  if(!allSS){el.innerHTML='<div class="empty">尚無截圖</div>';return}
-
   const users=await getUsers();
   const userMap={};users.forEach(u=>userMap[u.id]=u.name);
-
-  const results=[];
   const dateKey=date.replace(/-/g,'_');
-  for(const key of Object.keys(allSS)){
-    // key format: date_uid_slotkey  e.g. 2026_01_17_8021_1100
-    const parts=key.split('_');
-    // date is first 3 parts (yyyy_mm_dd), uid is next, slot is last
-    if(parts.length<5) continue;
-    const recDate=parts.slice(0,3).join('_');
-    const recUid=parts[3];
-    const recSlotKey=parts[4];
-    const recSlot=recSlotKey.length===4?recSlotKey.slice(0,2)+':'+recSlotKey.slice(2):recSlotKey;
 
-    if(recDate!==dateKey) continue;
-    if(uid&&recUid!==uid) continue;
-    if(slot&&recSlot!==slot) continue;
-
-    const imgs=Object.values(allSS[key]);
-    results.push({uid:recUid,name:userMap[recUid]||recUid,slot:recSlot,imgs,key});
+  if(curSsType==='url'){
+    // Show group URLs
+    const allUrls=await fbGet('groupurls/'+dateKey);
+    if(!allUrls){el.innerHTML='<div class="empty">此日無社團網址記錄</div>';return}
+    const results=[];
+    for(const rUid of Object.keys(allUrls)){
+      if(uid&&rUid!==uid) continue;
+      for(const slotKey of Object.keys(allUrls[rUid])){
+        const recSlot=slotKey.length===4?slotKey.slice(0,2)+':'+slotKey.slice(2):slotKey;
+        if(slot&&recSlot!==slot) continue;
+        const urls=Object.values(allUrls[rUid][slotKey]);
+        results.push({uid:rUid,name:userMap[rUid]||rUid,slot:recSlot,urls});
+      }
+    }
+    if(!results.length){el.innerHTML='<div class="empty">此條件無社團網址</div>';return}
+    results.sort((a,b)=>SLOTS.indexOf(a.slot)-SLOTS.indexOf(b.slot));
+    el.innerHTML=results.map(r=>`
+      <div class="ss-group">
+        <div class="ss-group-head">
+          <span class="bslot">${r.slot}</span>
+          <span class="ss-group-info">${r.name}</span>
+          <span class="ss-group-meta">${r.uid} · ${r.urls.length} 個社團</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          ${r.urls.map(u=>`<a href="${u}" target="_blank" style="font-size:12px;font-family:var(--mono);color:var(--accent);word-break:break-all;text-decoration:none;padding:6px 10px;background:rgba(79,142,247,.07);border:1px solid rgba(79,142,247,.18);border-radius:6px;display:block">${u}</a>`).join('')}
+        </div>
+      </div>`).join('');
+    return;
   }
 
+  // Show screenshots (fb or th)
+  const allSS=await fbGet('screenshots_'+curSsType);
+  if(!allSS){el.innerHTML='<div class="empty">此類型尚無截圖</div>';return}
+  const results=[];
+  for(const key of Object.keys(allSS)){
+    const parsed=parseKey(key);
+    if(!parsed) continue;
+    const {recDate,recUid,recSlot}=parsed;
+    if(recDate!==date) continue;
+    if(uid&&recUid!==uid) continue;
+    if(slot&&recSlot!==slot) continue;
+    const imgs=Object.values(allSS[key]);
+    results.push({uid:recUid,name:userMap[recUid]||recUid,slot:recSlot,imgs});
+  }
   if(!results.length){el.innerHTML='<div class="empty">此條件無截圖</div>';return}
   results.sort((a,b)=>SLOTS.indexOf(a.slot)-SLOTS.indexOf(b.slot));
   el.innerHTML=results.map(r=>`
@@ -879,6 +1027,78 @@ window.changeAdminPw = async function(){
   if(!pw){showMsg(msg,'⚠ 請輸入密碼','var(--amber)');return}
   await setAdminPw(pw);showMsg(msg,'✅ 已更新','var(--green)');
   document.getElementById('new-admin-pw').value='';
+}
+
+window.previewDeleteDate = async function(){
+  const date = document.getElementById('del-date').value;
+  const el = document.getElementById('del-preview');
+  if(!date){el.innerHTML='<div style="color:var(--amber);font-size:13px">⚠ 請先選擇日期</div>';return}
+  el.innerHTML='<div style="color:var(--muted);font-size:13px">載入中…</div>';
+
+  const dateKey = date.replace(/-/g,'_');
+  const all = await getRecsFlat();
+  const recs = all.filter(r=>r.date===date);
+  const ssData = await fbGet('screenshots');
+  const ssKeys = ssData ? Object.keys(ssData).filter(k=>k.startsWith(dateKey+'_')) : [];
+
+  if(!recs.length && !ssKeys.length){
+    el.innerHTML='<div style="color:var(--muted);font-size:13px;padding:12px;background:var(--bg3);border-radius:8px">此日期無任何數據</div>';
+    return;
+  }
+
+  // Group by user+slot
+  const users = await getUsers();
+  const userMap = {};users.forEach(u=>userMap[u.id]=u.name);
+
+  let html = '<div style="display:flex;flex-direction:column;gap:8px">';
+  for(const rec of recs.sort((a,b)=>SLOTS.indexOf(a.slot)-SLOTS.indexOf(b.slot))){
+    const d=rec.data;
+    const ssKeyForRec = dateKey+'_'+rec.uid+'_'+rec.slot.replace(':','');
+    const hasImgs = ssKeys.includes(ssKeyForRec);
+    html += `<div style="background:var(--bg3);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div>
+        <div style="font-size:13px;font-weight:500;margin-bottom:4px">
+          <span style="background:rgba(79,142,247,.12);color:var(--accent);border:1px solid rgba(79,142,247,.2);border-radius:4px;padding:1px 7px;font-family:var(--mono);font-size:11px;margin-right:8px">${rec.slot}</span>
+          ${userMap[rec.uid]||rec.uid}
+          ${hasImgs?'<span style="color:var(--purple);font-size:11px;margin-left:6px">📸 含截圖</span>':''}
+        </div>
+        <div style="font-size:11px;color:var(--muted);font-family:var(--mono)">
+          LINE:${d.line} 開戶:${d.open} 客戶:${d.clients} 月支:${d.monthly} 引導:${d.guide} 拒絕:${d.reject}
+        </div>
+      </div>
+      <button onclick="deleteSingleRec('${rec.date}','${rec.uid}','${rec.slot}','${ssKeyForRec}',this)"
+        style="background:transparent;border:1px solid var(--red);color:var(--red);border-radius:6px;padding:5px 14px;cursor:pointer;font-size:12px;flex-shrink:0;transition:all .2s"
+        onmouseover="this.style.background='rgba(244,96,96,.12)'" onmouseout="this.style.background='transparent'">
+        刪除此筆
+      </button>
+    </div>`;
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+window.deleteSingleRec = async function(date, uid, slot, ssKey, btn){
+  const slotLabel = slot;
+  if(!confirm(`確認刪除 ${date} ${slotLabel} 的數據？`)) return;
+  btn.disabled=true; btn.textContent='刪除中…';
+  try{
+    // Delete record
+    await fbRemove(recPath(date,uid,slot));
+    // Delete screenshots if exist
+    const ssData = await fbGet('screenshots/'+ssKey);
+    if(ssData) await fbRemove('screenshots/'+ssKey);
+    // Remove the row from preview
+    btn.closest('div[style*="background:var(--bg3)"]').remove();
+    // Check if preview is now empty
+    const remaining = document.querySelectorAll('#del-preview [style*="background:var(--bg3)"]');
+    if(!remaining.length){
+      document.getElementById('del-preview').innerHTML='<div style="color:var(--green);font-size:13px;padding:12px;background:rgba(61,214,140,.07);border:1px solid rgba(61,214,140,.2);border-radius:8px">✅ 此日所有選取數據已刪除</div>';
+    }
+  }catch(e){
+    console.error(e);
+    btn.disabled=false; btn.textContent='刪除此筆';
+    alert('刪除失敗，請重試');
+  }
 }
 
 window.exportData = async function(){
