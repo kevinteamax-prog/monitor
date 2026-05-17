@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>數據監控系統</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0f14;
+  --bg2: #141720;
+  --bg3: #1c2030;
+  --bg4: #232840;
+  --line: #2a3050;
+  --line2: #3a4468;
+  --text: #e8eaf2;
+  --muted: #7a84a8;
+  --dim: #3d4566;
+  --accent: #4f8ef7;
+  --accent2: #7b6ef6;
+  --green: #3dd68c;
+  --amber: #f4b942;
+  --red: #f46060;
+  --cyan: #3dcfcf;
+  --font: 'Noto Sans TC', sans-serif;
+  --mono: 'DM Mono', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; min-height: 100vh; }
+input, select, button { font-family: var(--font); font-size: 14px; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 2px; }
+
+/* ── Pages ── */
+.page { display: none; min-height: 100vh; }
+.page.active { display: flex; flex-direction: column; }
+
+/* ══════════════════════════════════════
+   LOGIN PAGE
+══════════════════════════════════════ */
+#page-login {
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
+}
+#page-login::before {
+  content: '';
+  position: absolute;
+  width: 500px; height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(79,142,247,.12) 0%, transparent 70%);
+  top: -100px; left: -100px;
+  pointer-events: none;
+}
+#page-login::after {
+  content: '';
+  position: absolute;
+  width: 400px; height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(123,110,246,.10) 0%, transparent 70%);
+  bottom: -80px; right: -80px;
+  pointer-events: none;
+}
+.login-box {
+  background: var(--bg2);
+  border: 1px solid var(--line2);
+  border-radius: 16px;
+  padding: 40px 44px;
+  width: 380px;
+  position: relative;
+  z-index: 1;
+}
+.login-logo {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 28px;
+}
+.login-logo .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+.login-logo span { font-size: 17px; font-weight: 700; letter-spacing: .04em; color: var(--text); }
+.login-logo .tag { font-size: 11px; color: var(--muted); background: var(--bg3); border: 1px solid var(--line); border-radius: 4px; padding: 2px 7px; margin-left: 4px; font-family: var(--mono); }
+.login-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+.login-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; letter-spacing: .04em; }
+.field input, .field select {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--line2);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color .2s;
+}
+.field input:focus, .field select:focus { border-color: var(--accent); }
+.btn-primary {
+  width: 100%;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: opacity .2s, transform .1s;
+  letter-spacing: .04em;
+}
+.btn-primary:hover { opacity: .88; }
+.btn-primary:active { transform: scale(.98); }
+.login-err { color: var(--red); font-size: 12px; margin-top: 8px; display: none; }
+.admin-link { text-align: center; margin-top: 20px; }
+.admin-link a { color: var(--muted); font-size: 12px; text-decoration: none; border-bottom: 1px dashed var(--dim); cursor: pointer; }
+.admin-link a:hover { color: var(--text); }
+
+/* ══════════════════════════════════════
+   REPORT PAGE
+══════════════════════════════════════ */
+.nav {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--line);
+  padding: 0 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 52px; flex-shrink: 0;
+}
+.nav-left { display: flex; align-items: center; gap: 14px; }
+.nav-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); flex-shrink: 0; }
+.nav-title { font-weight: 700; font-size: 15px; }
+.nav-user { font-size: 12px; color: var(--muted); background: var(--bg3); border: 1px solid var(--line); border-radius: 6px; padding: 3px 10px; font-family: var(--mono); }
+.nav-right { display: flex; align-items: center; gap: 10px; }
+.btn-sm {
+  background: transparent; border: 1px solid var(--line2);
+  color: var(--muted); border-radius: 6px; padding: 5px 12px;
+  cursor: pointer; font-size: 12px; transition: all .2s;
+}
+.btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+
+.report-body { flex: 1; padding: 24px; max-width: 700px; margin: 0 auto; width: 100%; }
+.section-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.section-title { font-size: 13px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+
+.slot-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+.slot-tab {
+  background: var(--bg3); border: 1px solid var(--line);
+  color: var(--muted); border-radius: 8px; padding: 6px 14px;
+  cursor: pointer; font-size: 13px; font-family: var(--mono);
+  transition: all .2s; position: relative;
+}
+.slot-tab:hover { border-color: var(--line2); color: var(--text); }
+.slot-tab.active { border-color: var(--accent); color: var(--accent); background: rgba(79,142,247,.08); }
+.slot-tab.done::after {
+  content: '';
+  position: absolute; top: 5px; right: 6px;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green); box-shadow: 0 0 6px var(--green);
+}
+
+.form-card {
+  background: var(--bg2); border: 1px solid var(--line);
+  border-radius: 14px; padding: 24px; margin-bottom: 16px;
+}
+.form-section-label {
+  font-size: 11px; color: var(--accent); letter-spacing: .1em;
+  text-transform: uppercase; font-family: var(--mono);
+  margin-bottom: 12px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.form-field label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 5px; }
+.form-field input {
+  width: 100%; background: var(--bg3); border: 1px solid var(--line2);
+  color: var(--text); border-radius: 7px; padding: 8px 12px;
+  outline: none; font-family: var(--mono); font-size: 16px;
+  transition: border-color .2s; text-align: center;
+}
+.form-field input:focus { border-color: var(--accent); }
+.submit-row { display: flex; align-items: center; gap: 12px; }
+.btn-submit {
+  flex: 1; background: var(--accent); color: #fff;
+  border: none; border-radius: 8px; padding: 11px;
+  font-weight: 700; cursor: pointer; font-size: 14px;
+  transition: opacity .2s; letter-spacing: .04em;
+}
+.btn-submit:hover { opacity: .85; }
+.submit-ok { color: var(--green); font-size: 13px; display: none; }
+.already-msg { background: rgba(61,214,140,.07); border: 1px solid rgba(61,214,140,.25); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--green); display: none; margin-bottom: 16px; }
+
+/* ══════════════════════════════════════
+   ADMIN PAGE
+══════════════════════════════════════ */
+.admin-layout { display: flex; flex: 1; min-height: 0; }
+.admin-sidebar {
+  width: 220px; flex-shrink: 0;
+  background: var(--bg2); border-right: 1px solid var(--line);
+  padding: 20px 0;
+}
+.sidebar-section { margin-bottom: 24px; }
+.sidebar-label { font-size: 10px; color: var(--dim); letter-spacing: .1em; padding: 0 16px; margin-bottom: 8px; text-transform: uppercase; font-family: var(--mono); }
+.sidebar-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 16px; cursor: pointer;
+  color: var(--muted); font-size: 13px; transition: all .2s;
+  border-left: 2px solid transparent;
+}
+.sidebar-item:hover { color: var(--text); background: var(--bg3); }
+.sidebar-item.active { color: var(--accent); border-left-color: var(--accent); background: rgba(79,142,247,.05); }
+.sidebar-item .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+.admin-content { flex: 1; overflow-y: auto; padding: 24px; }
+
+.filter-bar {
+  display: flex; gap: 10px; align-items: center;
+  margin-bottom: 20px; flex-wrap: wrap;
+}
+.filter-bar input, .filter-bar select {
+  background: var(--bg2); border: 1px solid var(--line2);
+  color: var(--text); border-radius: 8px; padding: 8px 12px;
+  outline: none; font-size: 13px; transition: border-color .2s;
+}
+.filter-bar input:focus, .filter-bar select:focus { border-color: var(--accent); }
+.filter-bar select option { background: var(--bg2); }
+
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-bottom: 20px; }
+.stat-card {
+  background: var(--bg2); border: 1px solid var(--line);
+  border-radius: 10px; padding: 14px 16px;
+}
+.stat-card .sc-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+.stat-card .sc-val { font-size: 24px; font-weight: 700; font-family: var(--mono); }
+.sc-val.blue { color: var(--accent); }
+.sc-val.green { color: var(--green); }
+.sc-val.amber { color: var(--amber); }
+.sc-val.red { color: var(--red); }
+.sc-val.cyan { color: var(--cyan); }
+
+.data-table-wrap { background: var(--bg2); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  background: var(--bg3); padding: 10px 12px;
+  font-size: 11px; color: var(--muted); text-align: left;
+  letter-spacing: .05em; font-family: var(--mono);
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+tbody tr { border-bottom: 1px solid var(--line); transition: background .15s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--bg3); }
+tbody td { padding: 9px 12px; font-size: 13px; color: var(--text); white-space: nowrap; }
+.td-mono { font-family: var(--mono); font-size: 12px; }
+.td-name { font-weight: 500; }
+.td-time { color: var(--accent); font-family: var(--mono); font-size: 12px; }
+.badge-slot { background: rgba(79,142,247,.12); color: var(--accent); border: 1px solid rgba(79,142,247,.25); border-radius: 5px; padding: 2px 8px; font-family: var(--mono); font-size: 11px; }
+.empty-state { text-align: center; padding: 48px 24px; color: var(--dim); font-size: 14px; }
+
+/* ── Admin Login ── */
+.admin-login-wrap {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: var(--bg);
+}
+
+/* ── User Management ── */
+.user-list { display: flex; flex-direction: column; gap: 8px; }
+.user-row {
+  background: var(--bg2); border: 1px solid var(--line);
+  border-radius: 10px; padding: 12px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.user-info .u-name { font-weight: 500; }
+.user-info .u-id { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+.btn-del { background: transparent; border: 1px solid var(--line2); color: var(--red); border-radius: 6px; padding: 4px 12px; cursor: pointer; font-size: 12px; transition: all .2s; }
+.btn-del:hover { background: rgba(244,96,96,.1); border-color: var(--red); }
+.add-user-form { background: var(--bg2); border: 1px dashed var(--line2); border-radius: 10px; padding: 16px; margin-top: 12px; }
+.add-user-form .form-grid { margin-bottom: 12px; }
+.btn-add { background: rgba(61,214,140,.1); border: 1px solid rgba(61,214,140,.3); color: var(--green); border-radius: 7px; padding: 8px 18px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all .2s; }
+.btn-add:hover { background: rgba(61,214,140,.18); }
+
+/* ── Funnel ── */
+.funnel-wrap { display: flex; flex-direction: column; gap: 8px; }
+.funnel-row { display: flex; align-items: center; gap: 12px; }
+.funnel-label { font-size: 12px; color: var(--muted); width: 90px; text-align: right; flex-shrink: 0; }
+.funnel-bar-wrap { flex: 1; height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+.funnel-bar { height: 100%; border-radius: 4px; transition: width .5s ease; }
+.funnel-num { font-size: 13px; font-family: var(--mono); font-weight: 500; width: 36px; }
+
+.section-card { background: var(--bg2); border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.section-card-title { font-size: 13px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 16px; font-family: var(--mono); }
+</style>
+</head>
+<body>
+
+<!-- ══════════ LOGIN ══════════ -->
+<div id="page-login" class="page active">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="dot"></div>
+      <span>DataPulse</span>
+      <span class="tag">v1.0</span>
+    </div>
+    <div class="login-title">人員登入</div>
+    <div class="login-sub">請輸入您的員工編號與密碼</div>
+    <div class="field"><label>員工編號</label><input id="login-id" type="text" placeholder="例：EMP001" autocomplete="off"></div>
+    <div class="field"><label>密碼</label><input id="login-pw" type="password" placeholder="••••••"></div>
+    <button class="btn-primary" onclick="doLogin()">登入系統</button>
+    <div class="login-err" id="login-err">❌ 帳號或密碼錯誤，請再試一次</div>
+    <div class="admin-link"><a onclick="goAdmin()">後台管理入口 →</a></div>
+  </div>
+</div>
+
+<!-- ══════════ REPORT ══════════ -->
+<div id="page-report" class="page">
+  <nav class="nav">
+    <div class="nav-left">
+      <div class="nav-dot"></div>
+      <span class="nav-title">DataPulse</span>
+      <span class="nav-user" id="nav-user-label">—</span>
+    </div>
+    <div class="nav-right">
+      <span id="nav-date" style="font-size:12px;color:var(--muted);font-family:var(--mono)"></span>
+      <button class="btn-sm" onclick="doLogout()">登出</button>
+    </div>
+  </nav>
+  <div class="report-body">
+    <div class="section-head" style="margin-bottom:12px">
+      <span class="section-title">選擇填報時段</span>
+    </div>
+    <div class="slot-tabs" id="slot-tabs"></div>
+    <div id="already-msg" class="already-msg">✅ 此時段已完成填報，如需修改請重新提交</div>
+    <div class="form-card">
+      <div class="form-section-label">📣 FB 推廣</div>
+      <div class="form-grid">
+        <div class="form-field"><label>新增 FB 社團</label><input type="number" id="f-fb-group" min="0" value="0"></div>
+        <div class="form-field"><label>新增 FB 發文</label><input type="number" id="f-fb-post" min="0" value="0"></div>
+        <div class="form-field"><label>新增 Threads 貼文</label><input type="number" id="f-threads" min="0" value="0"></div>
+      </div>
+      <div class="form-section-label">📲 引流 & 詢問</div>
+      <div class="form-grid">
+        <div class="form-field"><label>引流 LINE</label><input type="number" id="f-line" min="0" value="0"></div>
+        <div class="form-field"><label>無效詢問總數</label><input type="number" id="f-invalid" min="0" value="0"></div>
+        <div class="form-field"><label>未滿</label><input type="number" id="f-under" min="0" value="0"></div>
+      </div>
+      <div class="form-section-label">💼 成交結果</div>
+      <div class="form-grid">
+        <div class="form-field"><label>拒絕</label><input type="number" id="f-reject" min="0" value="0"></div>
+        <div class="form-field"><label>引導二線</label><input type="number" id="f-guide" min="0" value="0"></div>
+        <div class="form-field"><label>成功開戶</label><input type="number" id="f-open" min="0" value="0"></div>
+      </div>
+      <div class="form-section-label">📊 H版數據</div>
+      <div class="form-grid">
+        <div class="form-field"><label>有效客戶數</label><input type="number" id="f-clients" min="0" value="0"></div>
+        <div class="form-field"><label>有效月支數</label><input type="number" id="f-monthly" min="0" value="0"></div>
+      </div>
+      <div class="submit-row">
+        <button class="btn-submit" onclick="submitSlot()">✓ 提交此時段數據</button>
+        <span class="submit-ok" id="submit-ok">✅ 已儲存！</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ ADMIN LOGIN ══════════ -->
+<div id="page-admin-login" class="page">
+  <div class="admin-login-wrap">
+    <div class="login-box">
+      <div class="login-logo">
+        <div class="dot" style="background:var(--amber);box-shadow:0 0 10px var(--amber)"></div>
+        <span>DataPulse</span>
+        <span class="tag">ADMIN</span>
+      </div>
+      <div class="login-title">後台管理</div>
+      <div class="login-sub">請輸入管理員密碼</div>
+      <div class="field"><label>管理員密碼</label><input id="admin-pw" type="password" placeholder="••••••" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
+      <button class="btn-primary" style="background:var(--amber);color:#1a1200" onclick="doAdminLogin()">進入後台</button>
+      <div class="login-err" id="admin-err">❌ 密碼錯誤</div>
+      <div class="admin-link"><a onclick="showPage('page-login')">← 返回人員登入</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ ADMIN DASHBOARD ══════════ -->
+<div id="page-admin" class="page">
+  <nav class="nav">
+    <div class="nav-left">
+      <div class="nav-dot" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></div>
+      <span class="nav-title">DataPulse</span>
+      <span class="nav-user" style="border-color:rgba(244,185,66,.3);color:var(--amber)">ADMIN</span>
+    </div>
+    <div class="nav-right">
+      <button class="btn-sm" onclick="doLogout()">登出</button>
+    </div>
+  </nav>
+  <div class="admin-layout">
+    <div class="admin-sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">功能</div>
+        <div class="sidebar-item active" onclick="adminTab('overview',this)"><span class="dot" style="background:var(--accent)"></span> 數據總覽</div>
+        <div class="sidebar-item" onclick="adminTab('detail',this)"><span class="dot" style="background:var(--cyan)"></span> 明細查詢</div>
+        <div class="sidebar-item" onclick="adminTab('users',this)"><span class="dot" style="background:var(--green)"></span> 人員管理</div>
+      </div>
+    </div>
+    <div class="admin-content">
+      <!-- Overview -->
+      <div id="tab-overview">
+        <div class="filter-bar">
+          <input type="date" id="ov-date" onchange="renderOverview()">
+          <select id="ov-slot" onchange="renderOverview()">
+            <option value="">全部時段</option>
+            <option>11:00</option><option>13:00</option><option>15:00</option>
+            <option>17:30</option><option>19:00</option><option>21:00</option>
+          </select>
+          <select id="ov-user" onchange="renderOverview()">
+            <option value="">全部人員</option>
+          </select>
+        </div>
+        <div class="stats-grid" id="ov-stats"></div>
+        <div class="section-card">
+          <div class="section-card-title">轉化漏斗</div>
+          <div class="funnel-wrap" id="ov-funnel"></div>
+        </div>
+        <div class="data-table-wrap">
+          <table>
+            <thead><tr>
+              <th>日期</th><th>時段</th><th>人員</th>
+              <th>FB社團</th><th>FB發文</th><th>Threads</th>
+              <th>引流LINE</th><th>無效詢問</th><th>未滿</th>
+              <th>拒絕</th><th>引導二線</th><th>成功開戶</th>
+              <th>有效客戶</th><th>有效月支</th>
+            </tr></thead>
+            <tbody id="ov-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <!-- Detail -->
+      <div id="tab-detail" style="display:none">
+        <div class="filter-bar">
+          <input type="date" id="dt-from"> <span style="color:var(--muted);font-size:12px">至</span>
+          <input type="date" id="dt-to">
+          <select id="dt-user">
+            <option value="">全部人員</option>
+          </select>
+          <select id="dt-slot">
+            <option value="">全部時段</option>
+            <option>11:00</option><option>13:00</option><option>15:00</option>
+            <option>17:30</option><option>19:00</option><option>21:00</option>
+          </select>
+          <button class="btn-sm" onclick="renderDetail()" style="color:var(--accent);border-color:var(--accent)">查詢</button>
+        </div>
+        <div class="data-table-wrap">
+          <table>
+            <thead><tr>
+              <th>日期</th><th>時段</th><th>人員</th>
+              <th>FB社團</th><th>FB發文</th><th>Threads</th>
+              <th>引流LINE</th><th>無效詢問</th><th>未滿</th>
+              <th>拒絕</th><th>引導二線</th><th>成功開戶</th>
+              <th>有效客戶</th><th>有效月支</th>
+            </tr></thead>
+            <tbody id="dt-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <!-- Users -->
+      <div id="tab-users" style="display:none">
+        <div class="user-list" id="user-list"></div>
+        <div class="add-user-form">
+          <div style="font-size:13px;color:var(--muted);margin-bottom:12px">新增人員帳號</div>
+          <div class="form-grid">
+            <div class="form-field"><label>姓名</label><input type="text" id="nu-name" placeholder="例：王小明"></div>
+            <div class="form-field"><label>員工編號</label><input type="text" id="nu-id" placeholder="例：EMP003"></div>
+            <div class="form-field"><label>密碼</label><input type="text" id="nu-pw" placeholder="設定密碼"></div>
+          </div>
+          <button class="btn-add" onclick="addUser()">＋ 新增帳號</button>
+          <span id="add-msg" style="color:var(--green);font-size:12px;margin-left:10px;display:none"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// STORAGE
+// ══════════════════════════════════════
+const ADMIN_PW = 'admin888';
+const SLOTS = ['11:00','13:00','15:00','17:30','19:00','21:00'];
+
+function getUsers() {
+  const d = localStorage.getItem('dp_users');
+  if (d) return JSON.parse(d);
+  const def = [
+    { id: 'EMP001', name: '員工A', pw: '123456' },
+    { id: 'EMP002', name: '員工B', pw: '123456' }
+  ];
+  localStorage.setItem('dp_users', JSON.stringify(def));
+  return def;
+}
+function saveUsers(u) { localStorage.setItem('dp_users', JSON.stringify(u)); }
+
+function getRecords() {
+  const d = localStorage.getItem('dp_records');
+  return d ? JSON.parse(d) : [];
+}
+function saveRecords(r) { localStorage.setItem('dp_records', JSON.stringify(r)); }
+
+function todayStr() {
+  const n = new Date();
+  return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
+}
+
+// ══════════════════════════════════════
+// PAGE ROUTING
+// ══════════════════════════════════════
+let currentUser = null;
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goAdmin() { showPage('page-admin-login'); }
+
+// ══════════════════════════════════════
+// LOGIN
+// ══════════════════════════════════════
+function doLogin() {
+  const uid = document.getElementById('login-id').value.trim();
+  const pw = document.getElementById('login-pw').value;
+  const users = getUsers();
+  const user = users.find(u => u.id === uid && u.pw === pw);
+  if (!user) {
+    document.getElementById('login-err').style.display = 'block';
+    return;
+  }
+  document.getElementById('login-err').style.display = 'none';
+  currentUser = user;
+  initReportPage();
+  showPage('page-report');
+}
+
+function doAdminLogin() {
+  const pw = document.getElementById('admin-pw').value;
+  if (pw !== ADMIN_PW) {
+    document.getElementById('admin-err').style.display = 'block';
+    return;
+  }
+  document.getElementById('admin-err').style.display = 'none';
+  initAdminPage();
+  showPage('page-admin');
+}
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('login-id').value = '';
+  document.getElementById('login-pw').value = '';
+  document.getElementById('admin-pw').value = '';
+  showPage('page-login');
+}
+
+// ══════════════════════════════════════
+// REPORT PAGE
+// ══════════════════════════════════════
+let currentSlot = SLOTS[0];
+
+function initReportPage() {
+  document.getElementById('nav-user-label').textContent = `${currentUser.name} (${currentUser.id})`;
+  document.getElementById('nav-date').textContent = todayStr();
+  renderSlotTabs();
+  selectSlot(SLOTS[0]);
+}
+
+function renderSlotTabs() {
+  const tabs = document.getElementById('slot-tabs');
+  const recs = getRecords();
+  const today = todayStr();
+  tabs.innerHTML = '';
+  SLOTS.forEach(s => {
+    const done = recs.some(r => r.date === today && r.uid === currentUser.id && r.slot === s);
+    const btn = document.createElement('button');
+    btn.className = 'slot-tab' + (s === currentSlot ? ' active' : '') + (done ? ' done' : '');
+    btn.textContent = s;
+    btn.onclick = () => selectSlot(s);
+    tabs.appendChild(btn);
+  });
+}
+
+function selectSlot(slot) {
+  currentSlot = slot;
+  document.querySelectorAll('.slot-tab').forEach(b => {
+    b.classList.toggle('active', b.textContent === slot);
+  });
+  const recs = getRecords();
+  const today = todayStr();
+  const existing = recs.find(r => r.date === today && r.uid === currentUser.id && r.slot === slot);
+  const alreadyMsg = document.getElementById('already-msg');
+  const fields = ['fb-group','fb-post','threads','line','invalid','under','reject','guide','open','clients','monthly'];
+  if (existing) {
+    alreadyMsg.style.display = 'block';
+    const d = existing.data;
+    document.getElementById('f-fb-group').value = d.fbGroup;
+    document.getElementById('f-fb-post').value = d.fbPost;
+    document.getElementById('f-threads').value = d.threads;
+    document.getElementById('f-line').value = d.line;
+    document.getElementById('f-invalid').value = d.invalid;
+    document.getElementById('f-under').value = d.under;
+    document.getElementById('f-reject').value = d.reject;
+    document.getElementById('f-guide').value = d.guide;
+    document.getElementById('f-open').value = d.open;
+    document.getElementById('f-clients').value = d.clients;
+    document.getElementById('f-monthly').value = d.monthly;
+  } else {
+    alreadyMsg.style.display = 'none';
+    ['fb-group','fb-post','threads','line','invalid','under','reject','guide','open','clients','monthly'].forEach(k => {
+      document.getElementById('f-' + k).value = 0;
+    });
+  }
+}
+
+function submitSlot() {
+  const data = {
+    fbGroup: +document.getElementById('f-fb-group').value,
+    fbPost: +document.getElementById('f-fb-post').value,
+    threads: +document.getElementById('f-threads').value,
+    line: +document.getElementById('f-line').value,
+    invalid: +document.getElementById('f-invalid').value,
+    under: +document.getElementById('f-under').value,
+    reject: +document.getElementById('f-reject').value,
+    guide: +document.getElementById('f-guide').value,
+    open: +document.getElementById('f-open').value,
+    clients: +document.getElementById('f-clients').value,
+    monthly: +document.getElementById('f-monthly').value,
+  };
+  const recs = getRecords();
+  const today = todayStr();
+  const idx = recs.findIndex(r => r.date === today && r.uid === currentUser.id && r.slot === currentSlot);
+  const rec = { date: today, uid: currentUser.id, name: currentUser.name, slot: currentSlot, data, ts: Date.now() };
+  if (idx >= 0) recs[idx] = rec; else recs.push(rec);
+  saveRecords(recs);
+  const ok = document.getElementById('submit-ok');
+  ok.style.display = 'inline';
+  setTimeout(() => ok.style.display = 'none', 2000);
+  renderSlotTabs();
+  document.getElementById('already-msg').style.display = 'block';
+}
+
+// ══════════════════════════════════════
+// ADMIN PAGE
+// ══════════════════════════════════════
+function initAdminPage() {
+  const today = todayStr();
+  document.getElementById('ov-date').value = today;
+  const dtFrom = document.getElementById('dt-from');
+  const dtTo = document.getElementById('dt-to');
+  if (!dtFrom.value) dtFrom.value = today;
+  if (!dtTo.value) dtTo.value = today;
+  refreshUserSelects();
+  renderOverview();
+  renderUserList();
+}
+
+function refreshUserSelects() {
+  const users = getUsers();
+  ['ov-user','dt-user'].forEach(id => {
+    const sel = document.getElementById(id);
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">全部人員</option>';
+    users.forEach(u => {
+      const o = document.createElement('option');
+      o.value = u.id; o.textContent = `${u.name} (${u.id})`;
+      sel.appendChild(o);
+    });
+    sel.value = cur;
+  });
+}
+
+function adminTab(name, el) {
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  ['overview','detail','users'].forEach(t => {
+    document.getElementById('tab-' + t).style.display = t === name ? 'block' : 'none';
+  });
+  if (name === 'overview') renderOverview();
+  if (name === 'detail') renderDetail();
+  if (name === 'users') renderUserList();
+}
+
+function filterRecords(opts = {}) {
+  let recs = getRecords();
+  if (opts.date) recs = recs.filter(r => r.date === opts.date);
+  if (opts.from) recs = recs.filter(r => r.date >= opts.from);
+  if (opts.to) recs = recs.filter(r => r.date <= opts.to);
+  if (opts.uid) recs = recs.filter(r => r.uid === opts.uid);
+  if (opts.slot) recs = recs.filter(r => r.slot === opts.slot);
+  return recs;
+}
+
+function sumField(recs, field) {
+  return recs.reduce((s, r) => s + (r.data[field] || 0), 0);
+}
+
+function renderOverview() {
+  const date = document.getElementById('ov-date').value || todayStr();
+  const slot = document.getElementById('ov-slot').value;
+  const uid = document.getElementById('ov-user').value;
+  const recs = filterRecords({ date, slot: slot || undefined, uid: uid || undefined });
+
+  const line = sumField(recs, 'line');
+  const guide = sumField(recs, 'guide');
+  const open = sumField(recs, 'open');
+  const invalid = sumField(recs, 'invalid');
+  const clients = sumField(recs, 'clients');
+  const monthly = sumField(recs, 'monthly');
+  const fbGroup = sumField(recs, 'fbGroup');
+  const fbPost = sumField(recs, 'fbPost');
+
+  document.getElementById('ov-stats').innerHTML = `
+    <div class="stat-card"><div class="sc-label">成功開戶</div><div class="sc-val green">${open}</div></div>
+    <div class="stat-card"><div class="sc-label">有效客戶數</div><div class="sc-val green">${clients}</div></div>
+    <div class="stat-card"><div class="sc-label">引流 LINE</div><div class="sc-val blue">${line}</div></div>
+    <div class="stat-card"><div class="sc-label">引導二線</div><div class="sc-val blue">${guide}</div></div>
+    <div class="stat-card"><div class="sc-label">無效詢問</div><div class="sc-val amber">${invalid}</div></div>
+    <div class="stat-card"><div class="sc-label">有效月支數</div><div class="sc-val cyan">${monthly}</div></div>
+    <div class="stat-card"><div class="sc-label">FB社團 新增</div><div class="sc-val">${fbGroup}</div></div>
+    <div class="stat-card"><div class="sc-label">FB發文 新增</div><div class="sc-val">${fbPost}</div></div>
+  `;
+
+  // Funnel
+  const max = Math.max(line, 1);
+  document.getElementById('ov-funnel').innerHTML = [
+    ['引流 LINE', line, 'var(--accent)', line],
+    ['引導二線', guide, 'var(--cyan)', max],
+    ['成功開戶', open, 'var(--green)', max],
+    ['無效詢問', invalid, 'var(--amber)', max],
+  ].map(([label, val, color, base]) => `
+    <div class="funnel-row">
+      <span class="funnel-label">${label}</span>
+      <div class="funnel-bar-wrap">
+        <div class="funnel-bar" style="width:${Math.round(val/Math.max(base,1)*100)}%;background:${color}"></div>
+      </div>
+      <span class="funnel-num" style="color:${color}">${val}</span>
+    </div>
+  `).join('');
+
+  // Table
+  renderTable('ov-tbody', recs);
+}
+
+function renderDetail() {
+  const from = document.getElementById('dt-from').value;
+  const to = document.getElementById('dt-to').value;
+  const uid = document.getElementById('dt-user').value;
+  const slot = document.getElementById('dt-slot').value;
+  const recs = filterRecords({ from: from || undefined, to: to || undefined, uid: uid || undefined, slot: slot || undefined });
+  renderTable('dt-tbody', recs);
+}
+
+function renderTable(tbodyId, recs) {
+  const tbody = document.getElementById(tbodyId);
+  if (!recs.length) {
+    tbody.innerHTML = `<tr><td colspan="14" class="empty-state">此條件無數據</td></tr>`;
+    return;
+  }
+  recs.sort((a,b) => b.ts - a.ts);
+  tbody.innerHTML = recs.map(r => {
+    const d = r.data;
+    return `<tr>
+      <td class="td-mono">${r.date}</td>
+      <td><span class="badge-slot">${r.slot}</span></td>
+      <td class="td-name">${r.name}<span style="color:var(--dim);font-size:11px;margin-left:4px">${r.uid}</span></td>
+      <td class="td-mono">${d.fbGroup}</td>
+      <td class="td-mono">${d.fbPost}</td>
+      <td class="td-mono">${d.threads}</td>
+      <td class="td-mono" style="color:var(--accent)">${d.line}</td>
+      <td class="td-mono" style="color:var(--amber)">${d.invalid}</td>
+      <td class="td-mono">${d.under}</td>
+      <td class="td-mono" style="color:var(--red)">${d.reject}</td>
+      <td class="td-mono">${d.guide}</td>
+      <td class="td-mono" style="color:var(--green)">${d.open}</td>
+      <td class="td-mono" style="color:var(--green)">${d.clients}</td>
+      <td class="td-mono" style="color:var(--cyan)">${d.monthly}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderUserList() {
+  const users = getUsers();
+  document.getElementById('user-list').innerHTML = users.map((u, i) => `
+    <div class="user-row">
+      <div class="user-info">
+        <div class="u-name">${u.name}</div>
+        <div class="u-id">${u.id} · 密碼：${u.pw}</div>
+      </div>
+      <button class="btn-del" onclick="delUser(${i})">移除</button>
+    </div>
+  `).join('');
+}
+
+function addUser() {
+  const name = document.getElementById('nu-name').value.trim();
+  const id = document.getElementById('nu-id').value.trim();
+  const pw = document.getElementById('nu-pw').value.trim();
+  if (!name || !id || !pw) return;
+  const users = getUsers();
+  if (users.find(u => u.id === id)) {
+    document.getElementById('add-msg').textContent = '⚠ 編號已存在';
+    document.getElementById('add-msg').style.display = 'inline';
+    return;
+  }
+  users.push({ id, name, pw });
+  saveUsers(users);
+  document.getElementById('nu-name').value = '';
+  document.getElementById('nu-id').value = '';
+  document.getElementById('nu-pw').value = '';
+  document.getElementById('add-msg').textContent = '✅ 新增成功';
+  document.getElementById('add-msg').style.display = 'inline';
+  setTimeout(() => document.getElementById('add-msg').style.display = 'none', 2000);
+  renderUserList();
+  refreshUserSelects();
+}
+
+function delUser(i) {
+  const users = getUsers();
+  if (!confirm(`確認移除 ${users[i].name}？`)) return;
+  users.splice(i, 1);
+  saveUsers(users);
+  renderUserList();
+  refreshUserSelects();
+}
+
+// enter key for login
+document.getElementById('login-pw').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('login-id').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+</script>
+</body>
+</html>
