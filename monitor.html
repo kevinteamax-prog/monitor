@@ -731,8 +731,7 @@ window.submitGroupUrls = async function(){
   const s=getSession();if(!s)return;
   const raw=document.getElementById('group-urls').value.trim();
   if(!raw){alert('請先貼上社團網址');return}
-  const urls=raw.split('
-').map(u=>u.trim()).filter(u=>u.length>0);
+  const urls=raw.split(/\r?\n/).map(u=>u.trim()).filter(u=>u.length>0);
   if(!urls.length){alert('請輸入有效網址');return}
   const users=await getUsers();
   const user=users.find(u=>u.id===s.uid);if(!user)return;
