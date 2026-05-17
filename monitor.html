@@ -525,8 +525,25 @@ async function selectSlot(slot,uid){
     // 已填報過：顯示該時段自己的數字
     FKEYS.forEach((k,i)=>document.getElementById('f'+i).value=rec.data[k]||0);
   } else {
-    // 未填報：全部清零
-    for(let i=0;i<11;i++) document.getElementById('f'+i).value=0;
+    // 未填報：找上一個已填時段帶入累計數字
+    const slotIdx=SLOTS.indexOf(slot);
+    let prevRec=null;
+    for(let i=slotIdx-1;i>=0;i--){
+      prevRec=await getRec(today(),uid,SLOTS[i]);
+      if(prevRec) break;
+    }
+    if(prevRec){
+      // FB推廣三個欄位歸零（每時段獨立新增）
+      document.getElementById('f0').value=0;
+      document.getElementById('f1').value=0;
+      document.getElementById('f2').value=0;
+      // 其餘帶入上一時段的累計數字
+      ['line','invalid','under','reject','guide','open','clients','monthly'].forEach((k,i)=>{
+        document.getElementById('f'+(i+3)).value=prevRec.data[k]||0;
+      });
+    } else {
+      for(let i=0;i<11;i++) document.getElementById('f'+i).value=0;
+    }
   }
 
   // 重置截圖區
