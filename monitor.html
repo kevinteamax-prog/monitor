@@ -358,19 +358,110 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
 
 <!-- CLIENT DAILY LOG MODAL -->
 <div class="modal-bg" id="log-modal">
-  <div class="modal" style="width:420px;max-width:95vw">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <h3 id="log-modal-title">填寫今日記錄</h3>
-      <button onclick="closeLogModal()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer">✕</button>
+  <div class="modal" style="width:520px;max-width:96vw;max-height:88vh;overflow-y:auto;padding:24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <h3 id="log-modal-title" style="font-size:16px">填寫今日記錄</h3>
+      <button onclick="closeLogModal()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1">✕</button>
     </div>
-    <div id="log-task-tip" style="background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#c8c0e8;line-height:1.6"></div>
-    <div class="field"><label>今日客戶狀況</label><textarea id="log-status" rows="3" placeholder="填寫今日互動狀況、客戶反應…" style="width:100%;background:var(--bg3);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:10px 14px;outline:none;font-size:13px;resize:vertical;line-height:1.6"></textarea></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
-      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="log-dadan" style="accent-color:var(--accent)"> 做單✓</label>
-      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="log-yt" style="accent-color:var(--accent)"> YT✓</label>
-      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="log-explore" style="accent-color:var(--accent)"> 探店✓</label>
+    <div id="log-task-tip" style="background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#c8c0e8;line-height:1.7"></div>
+
+    <div style="font-size:11px;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;font-family:var(--mono);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--line)">📋 行動與信任指標</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;background:var(--bg3);border-radius:7px;padding:7px 10px"><input type="checkbox" id="log-dadan" style="accent-color:var(--accent)"> 做單</label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;background:var(--bg3);border-radius:7px;padding:7px 10px"><input type="checkbox" id="log-yt" style="accent-color:var(--accent)"> YT</label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;background:var(--bg3);border-radius:7px;padding:7px 10px"><input type="checkbox" id="log-explore" style="accent-color:var(--accent)"> 探店</label>
     </div>
-    <div class="field"><label>備註（客情資料等）</label><textarea id="log-note" rows="2" placeholder="客戶說了什麼重要訊息…" style="width:100%;background:var(--bg3);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:10px 14px;outline:none;font-size:13px;resize:vertical;line-height:1.6"></textarea></div>
+    <div style="margin-bottom:10px">
+      <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.04em">任務配合度反應</label>
+      <select id="log-task-reaction" style="width:100%;background:var(--bg3);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:8px 12px;outline:none;font-size:13px">
+        <option value="">選擇反應</option>
+        <option value="立刻做，配合度極高">立刻做，配合度極高 ⭐</option>
+        <option value="做了但稍微慢，需要催">做了但稍微慢，需要催</option>
+        <option value="推託說沒空，觀察中">推託說沒空，觀察中 ⚠️</option>
+        <option value="完全不做，防備心重">完全不做，防備心重 🚨</option>
+      </select>
+    </div>
+    <div style="margin-bottom:10px">
+      <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.04em">出金狀況</label>
+      <input type="text" id="log-withdraw" placeholder="例：提領1次 約5000元 法幣｜領完後很高興" style="width:100%;background:var(--bg3);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:8px 12px;outline:none;font-size:13px">
+    </div>
+    <div style="margin-bottom:10px">
+      <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.04em">今日互動狀況</label>
+      <textarea id="log-status" rows="2" placeholder="今天說了什麼？客戶反應怎麼樣？" style="width:100%;background:var(--bg3);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:8px 12px;outline:none;font-size:13px;resize:vertical;line-height:1.6"></textarea>
+    </div>
+
+    <div style="font-size:11px;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;font-family:var(--mono);margin-bottom:8px;margin-top:4px;padding-bottom:6px;border-bottom:1px solid var(--line)">🎯 核心情報蒐集</div>
+    <div style="margin-bottom:10px">
+      <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.04em">財務缺口（痛點）</label>
+      <textarea id="log-finance" rows="2" placeholder="每月缺多少錢？有貸款/負債嗎？金額多少？" style="width:100%;background:var(--bg3);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:8px 12px;outline:none;font-size:13px;resize:vertical;line-height:1.6"></textarea>
+    </div>
+    <div style="margin-bottom:10px">
+      <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.04em">職業 / 時間 / 資金</label>
+      <input type="text" id="log-job" placeholder="例：工廠大夜班，白天睡覺，資金約1-2萬" style="width:100%;background:var(--bg3);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:8px 12px;outline:none;font-size:13px">
+    </div>
+    <div style="margin-bottom:10px">
+      <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.04em">慾望 / 夢想（賺錢想幹嘛）</label>
+      <input type="text" id="log-dream" placeholder="例：想存錢買車、想幫家裡換大房子" style="width:100%;background:var(--bg3);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:8px 12px;outline:none;font-size:13px">
+    </div>
+
+    <div style="font-size:11px;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;font-family:var(--mono);margin-bottom:8px;margin-top:4px;padding-bottom:6px;border-bottom:1px solid var(--line)">💬 情感與聊天溫度</div>
+    <div style="margin-bottom:10px">
+      <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.04em">人設故事反應</label>
+      <select id="log-story-reaction" style="width:100%;background:var(--bg3);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:8px 12px;outline:none;font-size:13px">
+        <option value="">選擇反應</option>
+        <option value="主動安慰，情緒共鳴強">主動安慰、加油，情緒共鳴強 ⭐</option>
+        <option value="有回應但不深入">有回應但不深入</option>
+        <option value="只回喔喔了解，無共鳴">只回喔喔了解，無共鳴 ⚠️</option>
+        <option value="尚未切入故事">尚未切入故事</option>
+      </select>
+    </div>
+    <div style="margin-bottom:10px">
+      <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.04em">聊天溫度</label>
+      <select id="log-chat-temp" style="width:100%;background:var(--bg3);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:8px 12px;outline:none;font-size:13px">
+        <option value="">選擇溫度</option>
+        <option value="熱絡">熱絡 — 會主動早安、分享生活 🔥</option>
+        <option value="溫和">溫和 — 有問必答但不主動</option>
+        <option value="冷淡">冷淡 — 常已讀不回 ❄️</option>
+      </select>
+    </div>
+    <div style="margin-bottom:10px">
+      <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.04em">對群組看法</label>
+      <input type="text" id="log-group-view" placeholder="例：覺得任務有趣、覺得訊息太多很吵" style="width:100%;background:var(--bg3);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:8px 12px;outline:none;font-size:13px">
+    </div>
+
+    <div style="font-size:11px;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;font-family:var(--mono);margin-bottom:8px;margin-top:4px;padding-bottom:6px;border-bottom:1px solid var(--line)">📊 分類 / 成交追蹤</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div>
+        <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.04em">客戶分類</label>
+        <select id="log-abc" style="width:100%;background:var(--bg3);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:8px 12px;outline:none;font-size:13px">
+          <option value="">未分類</option>
+          <option value="A">A類 — 有錢有意願 🟢</option>
+          <option value="B">B類 — 有意願但猶豫 🟡</option>
+          <option value="C">C類 — 無意願放生 🔴</option>
+        </select>
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.04em">目前推進階段</label>
+        <select id="log-stage" style="width:100%;background:var(--bg3);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:8px 12px;outline:none;font-size:13px">
+          <option value="">選擇階段</option>
+          <option value="做任務建立信任">做任務建立信任</option>
+          <option value="有獎徵答互動">有獎徵答互動</option>
+          <option value="分享獲利討論">分享獲利討論</option>
+          <option value="資金評估中">資金評估中</option>
+          <option value="已交二線">已交二線</option>
+          <option value="成交">成交 ✅</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-bottom:10px">
+      <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.04em">客戶疑問 / 拒絕原因</label>
+      <input type="text" id="log-reject" placeholder="例：怕是詐騙、老婆不答應、等下個月發薪水" style="width:100%;background:var(--bg3);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:8px 12px;outline:none;font-size:13px">
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.04em">備註（其他重要情報）</label>
+      <textarea id="log-note" rows="2" placeholder="其他重要訊息…" style="width:100%;background:var(--bg3);border:1px solid var(--line2);color:var(--text);border-radius:8px;padding:8px 12px;outline:none;font-size:13px;resize:vertical;line-height:1.6"></textarea>
+    </div>
+
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeLogModal()">取消</button>
       <button class="btn-save" onclick="saveLog()">儲存記錄</button>
@@ -1494,6 +1585,7 @@ async function renderClientList(uid){
     const kickLabel=kicked?'恢復':'踢出';
     const kickVal=kicked?'true':'false';
     const kickBtn='<button class="cl-kick-btn" data-uid="'+escAttr(uid)+'" data-cid="'+escAttr(c.id)+'" data-val="'+kickVal+'" style="background:transparent;border:1px solid var(--line2);color:var(--muted);border-radius:6px;padding:4px 11px;cursor:pointer;font-size:12px">'+kickLabel+'</button>';
+    const delBtn='<button class="cl-del-btn" data-uid="'+escAttr(uid)+'" data-cid="'+escAttr(c.id)+'" data-cname="'+escAttr(c.name)+'" style="background:transparent;border:1px solid var(--red);color:var(--red);border-radius:6px;padding:4px 11px;cursor:pointer;font-size:12px">🗑 刪除</button>';
     html+='<div style="background:var(--bg2);border:1px solid '+cardBorder+';border-radius:12px;padding:14px 16px;opacity:'+cardOpacity+'">'
       +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap">'
       +'<div style="flex:1">'
@@ -1506,7 +1598,7 @@ async function renderClientList(uid){
       +'<div style="font-size:11px;color:var(--muted)">進群：'+escHtml(c.joinDate)+' ｜ '+escHtml(rule.label)+'</div>'
       +logStatus
       +'</div>'
-      +'<div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap">'+recordBtn+kickBtn+'</div>'
+      +'<div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap">'+recordBtn+kickBtn+delBtn+'</div>'
       +'</div>'
       +'</div>';
   }
@@ -1520,6 +1612,11 @@ async function renderClientList(uid){
   el.querySelectorAll('.cl-kick-btn').forEach(btn=>{
     btn.addEventListener('click',()=>{
       toggleKickClient(btn.dataset.uid,btn.dataset.cid,btn.dataset.val);
+    });
+  });
+  el.querySelectorAll('.cl-del-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      deleteClient(btn.dataset.uid,btn.dataset.cid,btn.dataset.cname);
     });
   });
 }
@@ -1544,6 +1641,15 @@ window.addClient = async function(){
 }
 
 // Toggle kick status
+window.deleteClient = async function(uid,cid,cname){
+  if(!confirm('確認永久刪除客戶「'+cname+'」？此操作無法復原')) return;
+  await fbRemove('clients/'+uid+'/'+cid);
+  // Also remove logs
+  await fbRemove('clientlogs/'+uid+'/'+cid);
+  await renderClientList(uid);
+  await renderTaskAlerts(uid);
+}
+
 window.toggleKickClient = async function(uid,cid,setActive){
   const status=setActive==='true'?'active':'kicked';
   await fbSet(`clients/${uid}/${cid}/status`,status);
@@ -1565,12 +1671,28 @@ window.openLogModal = function(cid,cname,days,uid){
   ['log-dadan','log-yt','log-explore'].forEach(k=>document.getElementById(k).checked=false);
   // Load today's existing log
   fbGet(clientLogPath(uid,cid,todayStr())).then(log=>{
+    const fields=['log-status','log-note','log-withdraw','log-finance','log-job','log-dream','log-group-view','log-reject'];
+    const selects=['log-task-reaction','log-story-reaction','log-chat-temp','log-abc','log-stage'];
+    fields.forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+    selects.forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+    ['log-dadan','log-yt','log-explore'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false});
     if(log){
-      document.getElementById('log-status').value=log.status||'';
-      document.getElementById('log-note').value=log.note||'';
       document.getElementById('log-dadan').checked=log.dadan||false;
       document.getElementById('log-yt').checked=log.yt||false;
       document.getElementById('log-explore').checked=log.explore||false;
+      document.getElementById('log-task-reaction').value=log.taskReaction||'';
+      document.getElementById('log-withdraw').value=log.withdraw||'';
+      document.getElementById('log-status').value=log.status||'';
+      document.getElementById('log-finance').value=log.finance||'';
+      document.getElementById('log-job').value=log.job||'';
+      document.getElementById('log-dream').value=log.dream||'';
+      document.getElementById('log-story-reaction').value=log.storyReaction||'';
+      document.getElementById('log-chat-temp').value=log.chatTemp||'';
+      document.getElementById('log-group-view').value=log.groupView||'';
+      document.getElementById('log-abc').value=log.abc||'';
+      document.getElementById('log-stage').value=log.stage||'';
+      document.getElementById('log-reject').value=log.reject||'';
+      document.getElementById('log-note').value=log.note||'';
     }
   });
   document.getElementById('log-modal').classList.add('on');
@@ -1580,13 +1702,23 @@ window.closeLogModal = function(){document.getElementById('log-modal').classList
 window.saveLog = async function(){
   const {uid,cid,days}=logModalCtx;
   const log={
-    date:todayStr(),
-    days,
-    status:document.getElementById('log-status').value.trim(),
-    note:document.getElementById('log-note').value.trim(),
+    date:todayStr(), days,
     dadan:document.getElementById('log-dadan').checked,
     yt:document.getElementById('log-yt').checked,
     explore:document.getElementById('log-explore').checked,
+    taskReaction:document.getElementById('log-task-reaction').value,
+    withdraw:document.getElementById('log-withdraw').value.trim(),
+    status:document.getElementById('log-status').value.trim(),
+    finance:document.getElementById('log-finance').value.trim(),
+    job:document.getElementById('log-job').value.trim(),
+    dream:document.getElementById('log-dream').value.trim(),
+    storyReaction:document.getElementById('log-story-reaction').value,
+    chatTemp:document.getElementById('log-chat-temp').value,
+    groupView:document.getElementById('log-group-view').value.trim(),
+    abc:document.getElementById('log-abc').value,
+    stage:document.getElementById('log-stage').value,
+    reject:document.getElementById('log-reject').value.trim(),
+    note:document.getElementById('log-note').value.trim(),
     ts:Date.now()
   };
   await fbSet(clientLogPath(uid,cid,todayStr()),log);
@@ -1652,12 +1784,17 @@ window.renderClientAdmin = async function(){
   el.innerHTML=rows.map(({uid,staffName,c,days,log,rule})=>{
     const statusColor=log?'var(--green)':'var(--amber)';
     const statusText=log?'✅ 已記錄':'⏳ 未記錄';
-    const logHtml=log?('<div style="font-size:12px;color:var(--text);background:var(--bg3);border-radius:6px;padding:7px 10px;margin-top:6px">'
-      +'<span style="color:var(--muted)">今日狀況：</span>'+(log.status||'—')+'<br>'
-      +'<span style="color:var(--muted)">做單：</span>'+(log.dadan?'✓':'—')+'&nbsp;&nbsp;'
-      +'<span style="color:var(--muted)">YT：</span>'+(log.yt?'✓':'—')+'&nbsp;&nbsp;'
-      +'<span style="color:var(--muted)">探店：</span>'+(log.explore?'✓':'—')
-      +(log.note?'<br><span style="color:var(--muted)">備註：</span>'+log.note:'')
+    const abcColor=log&&log.abc==='A'?'var(--green)':log&&log.abc==='B'?'var(--amber)':'var(--red)';
+    const logHtml=log?('<div style="font-size:12px;color:var(--text);background:var(--bg3);border-radius:6px;padding:8px 11px;margin-top:6px">'
+      +(log.abc?'<span style="background:'+abcColor+';color:#fff;border-radius:4px;padding:1px 8px;font-size:11px;font-weight:700;margin-right:6px">'+log.abc+'類</span>':'')
+      +(log.stage?'<span style="color:var(--cyan);font-size:11px">'+log.stage+'</span>':'')
+      +'<br><span style="color:var(--muted)">做單：</span>'+(log.dadan?'✓':'—')+'&nbsp;'
+      +'<span style="color:var(--muted)">YT：</span>'+(log.yt?'✓':'—')+'&nbsp;'
+      +'<span style="color:var(--muted)">探店：</span>'+(log.explore?'✓':'—')+'&nbsp;'
+      +(log.chatTemp?'<span style="color:var(--muted)">溫度：</span>'+log.chatTemp:'')
+      +(log.status?'<br><span style="color:var(--muted)">今日：</span>'+escHtml(log.status):'')
+      +(log.finance?'<br><span style="color:var(--muted)">財務：</span>'+escHtml(log.finance):'')
+      +(log.reject?'<br><span style="color:var(--amber)">疑問/拒絕：</span>'+escHtml(log.reject):'')
       +'</div>'):'';
     return '<div style="background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px 15px;margin-bottom:8px">'
       +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">'
@@ -1671,8 +1808,20 @@ window.renderClientAdmin = async function(){
       +'</div>'
       +'<div style="font-size:11px;color:var(--muted);margin-bottom:4px">'+rule.label+'｜進群：'+c.joinDate+'</div>'
       +logHtml
+      +'<div style="display:flex;justify-content:flex-end;margin-top:8px">'
+      +'<button class="adm-del-btn" data-uid="'+escAttr(uid)+'" data-cid="'+escAttr(c.id)+'" data-cname="'+escAttr(c.name)+'" style="background:transparent;border:1px solid var(--red);color:var(--red);border-radius:6px;padding:3px 10px;cursor:pointer;font-size:11px">🗑 刪除客戶</button>'
+      +'</div>'
       +'</div>';
   }).join('');
+  // Wire admin delete buttons
+  document.getElementById('cl-content').querySelectorAll('.adm-del-btn').forEach(btn=>{
+    btn.addEventListener('click',async()=>{
+      if(!confirm('確認刪除客戶「'+btn.dataset.cname+'」？')) return;
+      await fbRemove('clients/'+btn.dataset.uid+'/'+btn.dataset.cid);
+      await fbRemove('clientlogs/'+btn.dataset.uid+'/'+btn.dataset.cid);
+      await renderClientAdmin();
+    });
+  });
 }
 
 // Helper: todayStr (same as today())
