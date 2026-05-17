@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>DataPulse 數據監控</title>
+<!-- DataPulse v202605171700 -->
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -2435,8 +2436,7 @@ window.exportDeviceExcel = async function(){
       ]);
     }
   }
-  const csv='﻿'+rows.map(r=>r.map(c=>{const s=String(c||'').replace(/"/g,'""');return s.includes(',')||s.includes('"')?'"'+s+'"':s}).join(',')).join('
-');
+  const csv='﻿'+rows.map(r=>r.map(c=>{const s=String(c||'').replace(/"/g,'""');return s.includes(',')||s.includes('"')?'"'+s+'"':s}).join(',')).join('\n');
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
   a.download='設備回報_'+date+'.csv'; a.click();
