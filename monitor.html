@@ -886,6 +886,7 @@ function initReport(user){
   document.getElementById('nv-date').textContent=today();
   renderSlotTabs(user.id);
   selectSlot(SLOTS[0],user.id);
+  startSlotReminder(user.id);
 }
 
 async function renderSlotTabs(uid){
@@ -2586,6 +2587,88 @@ window.deleteRecord = async function(){
 document.getElementById('rec-edit-modal').addEventListener('click',e=>{
   if(e.target===e.currentTarget) closeRecordEdit();
 });
+
+// ══════════════════════════════════════
+// SLOT REMINDER NOTIFICATION
+// ══════════════════════════════════════
+let _reminderTimer = null;
+
+async function startSlotReminder(uid){
+  if('Notification' in window && Notification.permission==='default'){
+    await Notification.requestPermission();
+  }
+  if(_reminderTimer) clearInterval(_reminderTimer);
+  _reminderTimer = setInterval(()=>checkSlotReminder(uid), 30000);
+  checkSlotReminder(uid);
+}
+
+async function checkSlotReminder(uid){
+  const now=new Date();
+  const currentMin=now.getHours()*60+now.getMinutes();
+  const slotTimes=[
+    {slot:'11:00',min:660,warn:655},
+    {slot:'13:00',min:780,warn:775},
+    {slot:'15:00',min:900,warn:895},
+    {slot:'17:30',min:1050,warn:1045},
+    {slot:'19:00',min:1140,warn:1135},
+    {slot:'21:00',min:1260,warn:1255},
+  ];
+  for(const s of slotTimes){
+    const isAtTime=currentMin>=s.min&&currentMin<=s.min+1;
+    const isWarn=currentMin>=s.warn&&currentMin<=s.warn+1;
+    if(!isAtTime&&!isWarn) continue;
+    const rec=await getRec(today(),uid,s.slot);
+    if(rec) continue;
+    const minsLeft=isWarn?5:0;
+    const msg=minsLeft>0
+      ?'距離 '+s.slot+' 填報時間還有 5 分鐘，請準備！'
+      :'⏰ 現在是 '+s.slot+'，請立刻填報此時段數據！';
+    if('Notification' in window&&Notification.permission==='granted'){
+      const n=new Notification('DataPulse 填報提醒',{
+        body:msg,
+        requireInteraction:true,
+        tag:'dp-'+s.slot
+      });
+      n.onclick=function(){
+        window.focus();
+        switchRTab('data');
+        selectSlot(s.slot,uid);
+        n.close();
+      };
+    }
+    showReminderBanner(s.slot,msg,uid);
+  }
+}
+
+function showReminderBanner(slot,msg,uid){
+  const old=document.getElementById('reminder-banner');
+  if(old) old.remove();
+  if(!document.getElementById('reminder-anim')){
+    const st=document.createElement('style');
+    st.id='reminder-anim';
+    st.textContent='@keyframes slideDown{from{opacity:0;transform:translateX(-50%) translateY(-20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}';
+    document.head.appendChild(st);
+  }
+  const b=document.createElement('div');
+  b.id='reminder-banner';
+  b.style.cssText='position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:9999;background:linear-gradient(135deg,#1a2a4a,#0d1a35);border:1px solid #4f8ef7;border-radius:12px;padding:14px 20px;display:flex;align-items:center;gap:14px;box-shadow:0 8px 32px rgba(79,142,247,.4);animation:slideDown .4s ease;max-width:90vw;min-width:320px';
+  const safeSlot=slot.replace(':','_');
+  b.innerHTML='<span style="font-size:22px">⏰</span>'
+    +'<div style="flex:1">'
+    +'<div style="font-size:13px;font-weight:700;color:#4f8ef7;margin-bottom:3px">DataPulse 填報提醒</div>'
+    +'<div style="font-size:12px;color:#e8eaf2">'+escHtml(msg)+'</div>'
+    +'</div>'
+    +'<button id="reminder-go-'+safeSlot+'" style="background:#4f8ef7;color:#fff;border:none;border-radius:7px;padding:7px 14px;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap">立即填報</button>'
+    +'<button id="reminder-close" style="background:transparent;border:none;color:#7a84a8;cursor:pointer;font-size:20px;line-height:1;padding:0 4px">✕</button>';
+  document.body.appendChild(b);
+  document.getElementById('reminder-go-'+safeSlot).addEventListener('click',()=>{
+    switchRTab('data');
+    selectSlot(slot,uid);
+    b.remove();
+  });
+  document.getElementById('reminder-close').addEventListener('click',()=>b.remove());
+  setTimeout(()=>{if(b.parentNode)b.remove();},120000);
+}
 
 document.getElementById('li-pw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
 document.getElementById('li-id').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
