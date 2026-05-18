@@ -1375,15 +1375,57 @@ window.renderOv = async function(){
   // ── 未填報提醒 ──
   await renderMissingReport(date, slot, uid);
 
+  // Build per-user breakdown for guide and open
+  const byUid2={};
+  for(const r of recs){
+    if(!byUid2[r.uid]) byUid2[r.uid]={name:r.name,uid:r.uid,recs:[]};
+    byUid2[r.uid].recs.push(r);
+  }
+  // For each user, get latest slot values
+  const userGuide=[], userOpen=[];
+  for(const u of Object.values(byUid2)){
+    const latest=u.recs.reduce((a,b)=>SLOTS.indexOf(b.slot)>SLOTS.indexOf(a.slot)?b:a);
+    const gv=latest.data.guide||0;
+    const ov=latest.data.open||0;
+    if(gv>0) userGuide.push({name:u.name,val:gv});
+    if(ov>0) userOpen.push({name:u.name,val:ov});
+  }
+  userGuide.sort((a,b)=>b.val-a.val);
+  userOpen.sort((a,b)=>b.val-a.val);
+
+  function detailHtml(arr,color){
+    if(!arr.length) return '';
+    return '<div id="detail-popup" style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1)">'
+      +arr.map(u=>'<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0">'
+        +'<span style="font-size:11px;color:var(--text)">'+escHtml(u.name)+'</span>'
+        +'<span style="font-size:12px;font-weight:700;color:'+color+';font-family:var(--mono)">'+u.val+'</span>'
+        +'</div>').join('')
+      +'</div>';
+  }
+
+  function makeCard(label,val,colorClass,detailArr,detailColor){
+    const hasDetail=detailArr&&detailArr.length>0;
+    const cardId='scard-'+label.replace(/\s/g,'');
+    const detail=hasDetail?detailHtml(detailArr,detailColor):'';
+    const cursor=hasDetail?'cursor:pointer':'';
+    const hint=hasDetail?'<span style="font-size:10px;color:var(--muted);margin-left:6px">▼ 點擊展開</span>':'';
+    return '<div class="scard" id="'+cardId+'" style="'+cursor+'" '
+      +(hasDetail?'onclick="toggleCardDetail(''+cardId+'')"':'')+'>'
+      +'<div class="sl">'+label+hint+'</div>'
+      +'<div class="sv '+colorClass+'">'+val+'</div>'
+      +(hasDetail?'<div id="'+cardId+'-detail" style="display:none">'+detail+'</div>':'')
+      +'</div>';
+  }
+
   document.getElementById('ov-stats').innerHTML=
-    '<div class="scard"><div class="sl">成功開戶</div><div class="sv green">'+s('open')+'</div></div>'
-    +'<div class="scard"><div class="sl">有效客戶數</div><div class="sv green">'+s('clients')+'</div></div>'
-    +'<div class="scard"><div class="sl">引流 LINE</div><div class="sv blue">'+s('line')+'</div></div>'
-    +'<div class="scard"><div class="sl">引導二線</div><div class="sv blue">'+s('guide')+'</div></div>'
-    +'<div class="scard"><div class="sl">無效詢問</div><div class="sv amber">'+s('invalid')+'</div></div>'
-    +'<div class="scard"><div class="sl">有效月支數</div><div class="sv cyan">'+s('monthly')+'</div></div>'
-    +'<div class="scard"><div class="sl">FB社團</div><div class="sv purple">'+s('fbGroup')+'</div></div>'
-    +'<div class="scard"><div class="sl">FB發文</div><div class="sv purple">'+s('fbPost')+'</div></div>';
+    makeCard('成功開戶',   s('open'),    'green', userOpen,  'var(--green)')
+   +makeCard('有效客戶數', s('clients'), 'green', null,      '')
+   +makeCard('引流 LINE',  s('line'),    'blue',  null,      '')
+   +makeCard('引導二線',   s('guide'),   'blue',  userGuide, 'var(--accent)')
+   +makeCard('無效詢問',   s('invalid'), 'amber', null,      '')
+   +makeCard('有效月支數', s('monthly'), 'cyan',  null,      '')
+   +makeCard('FB社團',     s('fbGroup'), 'purple',null,      '')
+   +makeCard('FB發文',     s('fbPost'),  'purple',null,      '');
 
   const mx=Math.max(s('line'),1);
   document.getElementById('ov-funnel').innerHTML=[
@@ -2790,6 +2832,17 @@ function showReminderBanner(slot,msg,uid){
   });
   document.getElementById('reminder-close').addEventListener('click',()=>b.remove());
   setTimeout(()=>{if(b.parentNode)b.remove();},120000);
+}
+
+window.toggleCardDetail = function(cardId){
+  const detail=document.getElementById(cardId+'-detail');
+  const card=document.getElementById(cardId);
+  if(!detail) return;
+  const isOpen=detail.style.display!=='none';
+  detail.style.display=isOpen?'none':'block';
+  // Update hint text
+  const hint=card.querySelector('span[style*="muted"]');
+  if(hint) hint.textContent=isOpen?'▼ 點擊展開':'▲ 收起';
 }
 
 document.getElementById('li-pw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
