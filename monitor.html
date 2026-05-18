@@ -556,6 +556,8 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
           <select id="ov-slot" onchange="renderOv()"><option value="">全部時段</option><option>11:00</option><option>13:00</option><option>15:00</option><option>17:30</option><option>19:00</option><option>21:00</option></select>
           <select id="ov-user" onchange="renderOv()"><option value="">全部人員</option></select>
         </div>
+        <!-- 未填報警示 -->
+        <div id="ov-missing" style="margin-bottom:16px"></div>
         <div class="sgrid" id="ov-stats"></div>
         <div class="sccard"><div class="sccard-t">轉化漏斗</div><div class="fnl-wrap" id="ov-funnel"></div></div>
         <div class="dtw"><table><thead><tr><th>日期</th><th>時段</th><th>人員</th><th>FB社團</th><th>FB發文</th><th>Threads</th><th>引流LINE</th><th>無效詢問</th><th>未滿</th><th>拒絕</th><th>引導二線</th><th>成功開戶</th><th>有效客戶</th><th>有效月支</th><th>操作</th></tr></thead><tbody id="ov-tbody"></tbody></table></div>
@@ -1247,6 +1249,80 @@ function filtRecs(recs,{date,from,to,uid,slot}={}){
 }
 function sumF(recs,k){return recs.reduce((s,r)=>s+(r.data[k]||0),0)}
 
+// ── 未填報檢查 ──
+async function renderMissingReport(date, slotFilter, uidFilter){
+  const el=document.getElementById('ov-missing');
+  if(!el) return;
+
+  const users=await getUsers();
+  // Filter users if specific user selected
+  const targetUsers=uidFilter?users.filter(u=>u.id===uidFilter):users;
+  if(!targetUsers.length){el.innerHTML='';return}
+
+  // Determine which slots to check
+  const now=new Date();
+  const isToday=date===today();
+  const currentMin=now.getHours()*60+now.getMinutes();
+
+  // Only check slots that have already passed (or all if not today)
+  const slotMins={
+    '11:00':660,'13:00':780,'15:00':900,
+    '17:30':1050,'19:00':1140,'21:00':1260
+  };
+  const slotsToCheck=slotFilter
+    ?[slotFilter]
+    :SLOTS.filter(s=>!isToday||currentMin>=slotMins[s]);
+
+  if(!slotsToCheck.length){el.innerHTML='';return}
+
+  // Get all records for this date
+  const all=await getRecsFlat();
+  const dateRecs=all.filter(r=>r.date===date);
+
+  // Build missing map: slot -> [missing user names]
+  const missing=[]; // {slot, users:[{name,uid}]}
+  for(const slot of slotsToCheck){
+    const missingUsers=[];
+    for(const u of targetUsers){
+      const has=dateRecs.some(r=>r.uid===u.id&&r.slot===slot);
+      if(!has) missingUsers.push({name:u.name,uid:u.id});
+    }
+    if(missingUsers.length) missing.push({slot,users:missingUsers});
+  }
+
+  if(!missing.length){
+    el.innerHTML='<div style="background:rgba(61,214,140,.08);border:1px solid rgba(61,214,140,.25);border-radius:10px;padding:11px 16px;font-size:13px;color:var(--green);margin-bottom:2px">✅ '+date+' 所有人員已完成填報！</div>';
+    return;
+  }
+
+  // Build warning card
+  let html='<div style="background:rgba(244,96,96,.07);border:1px solid rgba(244,96,96,.3);border-radius:12px;padding:14px 16px;margin-bottom:4px">'
+    +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">'
+    +'<span style="font-size:16px">🚨</span>'
+    +'<span style="font-size:13px;font-weight:700;color:var(--red)">未填報提醒</span>'
+    +'<span style="font-size:11px;color:var(--muted)">'+date+'</span>'
+    +'</div>'
+    +'<div style="display:flex;flex-direction:column;gap:8px">';
+
+  for(const m of missing){
+    html+='<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 12px;background:rgba(0,0,0,.2);border-radius:8px">'
+      +'<span style="background:rgba(79,142,247,.15);color:var(--accent);border:1px solid rgba(79,142,247,.25);border-radius:5px;padding:2px 9px;font-family:var(--mono);font-size:12px;font-weight:600;flex-shrink:0">'+escHtml(m.slot)+'</span>'
+      +'<div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center">'
+      +m.users.map(u=>'<span style="font-size:12px;background:rgba(244,96,96,.12);border:1px solid rgba(244,96,96,.25);border-radius:5px;padding:2px 9px;color:#f09090">'+escHtml(u.name)+'</span>').join('')
+      +'</div>'
+      +'</div>';
+  }
+
+  // Summary count
+  const totalMissing=missing.reduce((s,m)=>s+m.users.length,0);
+  html+='</div>'
+    +'<div style="margin-top:10px;font-size:11px;color:var(--muted)">共 '
+    +missing.length+' 個時段、'+totalMissing+' 筆尚未填報</div>'
+    +'</div>';
+
+  el.innerHTML=html;
+}
+
 window.renderOv = async function(){
   const date=document.getElementById('ov-date').value||today();
   const slot=document.getElementById('ov-slot').value;
@@ -1254,6 +1330,9 @@ window.renderOv = async function(){
   const all=await getRecsFlat();
   const recs=filtRecs(all,{date,slot:slot||undefined,uid:uid||undefined});
   const s=k=>sumF(recs,k);
+
+  // ── 未填報提醒 ──
+  await renderMissingReport(date, slot, uid);
   document.getElementById('ov-stats').innerHTML=`
     <div class="scard"><div class="sl">成功開戶</div><div class="sv green">${s('open')}</div></div>
     <div class="scard"><div class="sl">有效客戶數</div><div class="sv green">${s('clients')}</div></div>
