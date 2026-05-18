@@ -1405,12 +1405,12 @@ window.renderOv = async function(){
 
   function makeCard(label,val,colorClass,detailArr,detailColor){
     const hasDetail=detailArr&&detailArr.length>0;
-    const cardId='scard-'+label.replace(/\s/g,'');
+    const cardId='scard-'+label.replace(/ /g,'-').replace(/\u0020/g,'-');
     const detail=hasDetail?detailHtml(detailArr,detailColor):'';
-    const cursor=hasDetail?'cursor:pointer':'';
-    const hint=hasDetail?'<span style="font-size:10px;color:var(--muted);margin-left:6px">▼ 點擊展開</span>':'';
-    return '<div class="scard" id="'+cardId+'" style="'+cursor+'" '
-      +(hasDetail?'onclick="toggleCardDetail(''+cardId+'')"':'')+'>'
+    const cursorStyle=hasDetail?'cursor:pointer':'';
+    const hint=hasDetail?'<span style="font-size:10px;color:var(--muted);margin-left:6px">▼ 展開</span>':'';
+    const clickAttr=hasDetail?' data-cardid="'+cardId+'" class="scard scard-clickable"':' class="scard"';
+    return '<div'+clickAttr+' id="'+cardId+'" style="'+cursorStyle+'">'
       +'<div class="sl">'+label+hint+'</div>'
       +'<div class="sv '+colorClass+'">'+val+'</div>'
       +(hasDetail?'<div id="'+cardId+'-detail" style="display:none">'+detail+'</div>':'')
@@ -1426,6 +1426,18 @@ window.renderOv = async function(){
    +makeCard('有效月支數', s('monthly'), 'cyan',  null,      '')
    +makeCard('FB社團',     s('fbGroup'), 'purple',null,      '')
    +makeCard('FB發文',     s('fbPost'),  'purple',null,      '');
+  // Wire click events for expandable cards
+  document.querySelectorAll('.scard-clickable').forEach(card=>{
+    card.addEventListener('click',()=>{
+      const cid=card.dataset.cardid;
+      const det=document.getElementById(cid+'-detail');
+      if(!det) return;
+      const isOpen=det.style.display!=='none';
+      det.style.display=isOpen?'none':'block';
+      const hint=card.querySelector('span[style*="muted"]');
+      if(hint) hint.textContent=isOpen?'▼ 展開':'▲ 收起';
+    });
+  });
 
   const mx=Math.max(s('line'),1);
   document.getElementById('ov-funnel').innerHTML=[
