@@ -2888,7 +2888,7 @@ window.exportGroupUrls = async function(){
         if(slot&&recSlot!==slot) continue;
         const urls=Object.values(allUrls[rUid][slotKey]);
         urls.forEach(url=>{
-          rows.push([date, recSlot, userMap[rUid]||rUid, rUid, url]);
+          rows.push([date,recSlot,userMap[rUid]||rUid,rUid,url]);
         });
       }
     }
@@ -2899,14 +2899,11 @@ window.exportGroupUrls = async function(){
       return;
     }
 
-    const csv='﻿'+rows.map(r=>
-      r.map(c=>{
-        const s=String(c||'').replace(/"/g,'""');
-        return s.includes(',')||s.includes('"')||s.includes('
-')?'"'+s+'"':s;
-      }).join(',')
-    ).join('
-');
+    const csvRows=rows.map(r=>r.map(c=>{
+      const s=String(c||'').replace(/"/g,'""');
+      return (s.indexOf(',')>=0||s.indexOf('"')>=0)?'"'+s+'"':s;
+    }).join(','));
+    const csv='﻿'+csvRows.join('\n');
 
     const a=document.createElement('a');
     a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
