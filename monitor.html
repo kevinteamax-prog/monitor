@@ -583,6 +583,7 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
           <button id="ss-tab-fb" onclick="setSsType('fb')" style="background:rgba(79,142,247,.15);border:1px solid var(--accent);color:var(--accent);border-radius:7px;padding:6px 16px;cursor:pointer;font-size:13px;font-weight:500">📘 FB 截圖</button>
           <button id="ss-tab-th" onclick="setSsType('th')" style="background:transparent;border:1px solid var(--line2);color:var(--muted);border-radius:7px;padding:6px 16px;cursor:pointer;font-size:13px">🧵 Threads 截圖</button>
           <button id="ss-tab-url" onclick="setSsType('url')" style="background:transparent;border:1px solid var(--line2);color:var(--muted);border-radius:7px;padding:6px 16px;cursor:pointer;font-size:13px">👥 社團網址</button>
+          <button id="url-export-btn" style="display:none;background:rgba(61,214,140,.1);border:1px solid rgba(61,214,140,.3);color:var(--green);border-radius:7px;padding:6px 16px;cursor:pointer;font-size:13px;font-weight:500" onclick="exportGroupUrls()">⬇ 匯出Excel</button>
         </div>
         <div id="ss-content"><div class="empty">選擇日期後顯示內容</div></div>
       </div>
@@ -1510,6 +1511,9 @@ window.setSsType = function(type){
       btn.style.fontWeight='400';
     }
   });
+  // Show export button only for URL tab
+  const exportBtn=document.getElementById('url-export-btn');
+  if(exportBtn) exportBtn.style.display=type==='url'?'inline-block':'none';
   renderSS();
 }
 
@@ -2855,6 +2859,64 @@ window.toggleCardDetail = function(cardId){
   // Update hint text
   const hint=card.querySelector('span[style*="muted"]');
   if(hint) hint.textContent=isOpen?'▼ 點擊展開':'▲ 收起';
+}
+
+window.exportGroupUrls = async function(){
+  const date=document.getElementById('ss-date').value||today();
+  const uid=document.getElementById('ss-user').value;
+  const slot=document.getElementById('ss-slot').value;
+  const btn=document.getElementById('url-export-btn');
+  if(btn){btn.disabled=true;btn.textContent='匯出中…';}
+
+  try{
+    const users=await getUsers();
+    const userMap={};users.forEach(u=>userMap[u.id]=u.name);
+    const dateKey=date.replace(/-/g,'_');
+    const allUrls=await fbGet('groupurls/'+dateKey);
+
+    if(!allUrls){
+      alert('此日期無社團網址記錄');
+      if(btn){btn.disabled=false;btn.textContent='⬇ 匯出Excel';}
+      return;
+    }
+
+    const rows=[['日期','時段','人員','人員編號','社團網址']];
+    for(const rUid of Object.keys(allUrls)){
+      if(uid&&rUid!==uid) continue;
+      for(const slotKey of Object.keys(allUrls[rUid])){
+        const recSlot=slotKey.length===4?slotKey.slice(0,2)+':'+slotKey.slice(2):slotKey;
+        if(slot&&recSlot!==slot) continue;
+        const urls=Object.values(allUrls[rUid][slotKey]);
+        urls.forEach(url=>{
+          rows.push([date, recSlot, userMap[rUid]||rUid, rUid, url]);
+        });
+      }
+    }
+
+    if(rows.length<=1){
+      alert('此條件無社團網址資料');
+      if(btn){btn.disabled=false;btn.textContent='⬇ 匯出Excel';}
+      return;
+    }
+
+    const csv='﻿'+rows.map(r=>
+      r.map(c=>{
+        const s=String(c||'').replace(/"/g,'""');
+        return s.includes(',')||s.includes('"')||s.includes('
+')?'"'+s+'"':s;
+      }).join(',')
+    ).join('
+');
+
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+    a.download='社團網址_'+date+'.csv';
+    a.click();
+  }catch(e){
+    console.error(e);
+    alert('匯出失敗：'+e.message);
+  }
+  if(btn){btn.disabled=false;btn.textContent='⬇ 匯出Excel';}
 }
 
 document.getElementById('li-pw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
