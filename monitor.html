@@ -1394,15 +1394,7 @@ window.renderOv = async function(){
   userGuide.sort((a,b)=>b.val-a.val);
   userOpen.sort((a,b)=>b.val-a.val);
 
-  function detailHtml(arr,color){
-    if(!arr.length) return '';
-    return '<div id="detail-popup" style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1)">'
-      +arr.map(u=>'<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0">'
-        +'<span style="font-size:11px;color:var(--text)">'+escHtml(u.name)+'</span>'
-        +'<span style="font-size:12px;font-weight:700;color:'+color+';font-family:var(--mono)">'+u.val+'</span>'
-        +'</div>').join('')
-      +'</div>';
-  }
+
 
   function makeCard(label,val,colorClass,detailArr,detailColor){
     const hasDetail=detailArr&&detailArr.length>0;
@@ -1418,15 +1410,66 @@ window.renderOv = async function(){
       +'</div>';
   }
 
+  // Build per-user breakdown for all cumulative keys
+  const userLine=[], userInvalid=[];
+  for(const u of Object.values(byUid2)){
+    const latest=u.recs.reduce((a,b)=>SLOTS.indexOf(b.slot)>SLOTS.indexOf(a.slot)?b:a);
+    const lv=latest.data.line||0;
+    const iv=latest.data.invalid||0;
+    if(lv>0) userLine.push({name:u.name,val:lv,slot:latest.slot});
+    if(iv>0) userInvalid.push({name:u.name,val:iv,slot:latest.slot});
+  }
+  userLine.sort((a,b)=>b.val-a.val);
+  userInvalid.sort((a,b)=>b.val-a.val);
+
+  function detailHtmlWithSlot(arr,color){
+    if(!arr.length) return '';
+    return '<div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1)">'
+      +arr.map(u=>'<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0;gap:8px">'
+        +'<span style="font-size:11px;color:var(--text)">'+escHtml(u.name)+'</span>'
+        +'<div style="display:flex;align-items:center;gap:6px">'
+        +(u.slot?'<span style="font-size:10px;color:var(--muted);font-family:var(--mono)">'+escHtml(u.slot)+'</span>':'')
+        +'<span style="font-size:12px;font-weight:700;color:'+color+';font-family:var(--mono)">'+u.val+'</span>'
+        +'</div>'
+        +'</div>').join('')
+      +'</div>';
+  }
+
+  // Override detailHtml for guide and open to show slot too
+  const userGuideSlot=[], userOpenSlot=[];
+  for(const u of Object.values(byUid2)){
+    const latest=u.recs.reduce((a,b)=>SLOTS.indexOf(b.slot)>SLOTS.indexOf(a.slot)?b:a);
+    const gv=latest.data.guide||0;
+    const ov=latest.data.open||0;
+    if(gv>0) userGuideSlot.push({name:u.name,val:gv,slot:latest.slot});
+    if(ov>0) userOpenSlot.push({name:u.name,val:ov,slot:latest.slot});
+  }
+  userGuideSlot.sort((a,b)=>b.val-a.val);
+  userOpenSlot.sort((a,b)=>b.val-a.val);
+
+  function makeCard2(label,val,colorClass,detailArr,detailColor){
+    const hasDetail=detailArr&&detailArr.length>0;
+    const cardId='scard-'+label.replace(/ /g,'-').replace(/ /g,'-');
+    const detail=hasDetail?detailHtmlWithSlot(detailArr,detailColor):'';
+    const cursorStyle=hasDetail?'cursor:pointer':'';
+    const hint=hasDetail?'<span style="font-size:10px;color:var(--muted);margin-left:6px">▼ 展開</span>':'';
+    const clickAttr=hasDetail?' data-cardid="'+cardId+'" class="scard scard-clickable"':' class="scard"';
+    return '<div'+clickAttr+' id="'+cardId+'" style="'+cursorStyle+'">'
+      +'<div class="sl">'+label+hint+'</div>'
+      +'<div class="sv '+colorClass+'">'+val+'</div>'
+      +(hasDetail?'<div id="'+cardId+'-detail" style="display:none">'+detail+'</div>':'')
+      +'</div>';
+  }
+
   document.getElementById('ov-stats').innerHTML=
-    makeCard('成功開戶',   s('open'),    'green', userOpen,  'var(--green)')
-   +makeCard('有效客戶數', s('clients'), 'green', null,      '')
-   +makeCard('引流 LINE',  s('line'),    'blue',  null,      '')
-   +makeCard('引導二線',   s('guide'),   'blue',  userGuide, 'var(--accent)')
-   +makeCard('無效詢問',   s('invalid'), 'amber', null,      '')
-   +makeCard('有效月支數', s('monthly'), 'cyan',  null,      '')
-   +makeCard('FB社團',     s('fbGroup'), 'purple',null,      '')
-   +makeCard('FB發文',     s('fbPost'),  'purple',null,      '');
+    makeCard2('成功開戶',   s('open'),    'green', userOpenSlot,  'var(--green)')
+   +makeCard2('有效客戶數', s('clients'), 'green', null,          '')
+   +makeCard2('引流 LINE',  s('line'),    'blue',  userLine,      'var(--accent)')
+   +makeCard2('引導二線',   s('guide'),   'blue',  userGuideSlot, 'var(--cyan)')
+   +makeCard2('無效詢問',   s('invalid'), 'amber', userInvalid,   'var(--amber)')
+   +makeCard2('有效月支數', s('monthly'), 'cyan',  null,          '')
+   +makeCard2('FB社團',     s('fbGroup'), 'purple',null,          '')
+   +makeCard2('FB發文',     s('fbPost'),  'purple',null,          '');
   // Wire click events for expandable cards
   document.querySelectorAll('.scard-clickable').forEach(card=>{
     card.addEventListener('click',()=>{
