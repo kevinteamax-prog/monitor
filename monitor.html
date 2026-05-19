@@ -2244,45 +2244,142 @@ window.renderClientAdmin = async function(){
 
   el.innerHTML=rows.map(({uid,staffName,c,days,log,rule})=>{
     const statusColor=log?'var(--green)':'var(--amber)';
-    const statusText=log?'✅ 已記錄':'⏳ 未記錄';
-    const abcColor=log&&log.abc==='A'?'var(--green)':log&&log.abc==='B'?'var(--amber)':'var(--red)';
-    const logHtml=log?('<div style="font-size:12px;color:var(--text);background:var(--bg3);border-radius:6px;padding:8px 11px;margin-top:6px">'
-      +(log.abc?'<span style="background:'+abcColor+';color:#fff;border-radius:4px;padding:1px 8px;font-size:11px;font-weight:700;margin-right:6px">'+log.abc+'類</span>':'')
-      +(log.stage?'<span style="color:var(--cyan);font-size:11px">'+log.stage+'</span>':'')
-      +'<br><span style="color:var(--muted)">做單：</span>'+(log.dadan?'✓':'—')+'&nbsp;'
-      +'<span style="color:var(--muted)">YT：</span>'+(log.yt?'✓':'—')+'&nbsp;'
-      +'<span style="color:var(--muted)">探店：</span>'+(log.explore?'✓':'—')+'&nbsp;'
-      +(log.chatTemp?'<span style="color:var(--muted)">溫度：</span>'+log.chatTemp:'')
-      +(log.status?'<br><span style="color:var(--muted)">今日：</span>'+escHtml(log.status):'')
-      +(log.finance?'<br><span style="color:var(--muted)">財務：</span>'+escHtml(log.finance):'')
-      +(log.reject?'<br><span style="color:var(--amber)">疑問/拒絕：</span>'+escHtml(log.reject):'')
-      +'</div>'):'';
-    return '<div style="background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px 15px;margin-bottom:8px">'
-      +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">'
+    const statusText=log?'✅ 今日已記錄':'⏳ 今日未記錄';
+    const todayLogHtml=log?buildLogRow(log,'今日 '+date):'';
+    const histId='hist-'+escAttr(uid)+'-'+escAttr(c.id);
+    // Latest ABC from today's log or show unknown
+    const abcBadge=log&&log.abc
+      ?'<span style="background:'+(log.abc==='A'?'var(--green)':log.abc==='B'?'var(--amber)':'var(--red)')+';color:#fff;border-radius:4px;padding:1px 8px;font-size:11px;font-weight:700">'+log.abc+'類</span>'
+      :'';
+    const stageBadge=log&&log.stage?'<span style="font-size:11px;color:var(--cyan);background:rgba(61,207,207,.1);border-radius:4px;padding:1px 7px">'+escHtml(log.stage)+'</span>':'';
+
+    return '<div style="background:var(--bg2);border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden">'
+      // Header
+      +'<div style="padding:12px 15px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;cursor:pointer" class="cl-card-header" data-histid="'+histId+'">'
       +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
-      +'<span style="font-weight:600">'+c.name+'</span>'
-      +'<span style="font-size:11px;color:var(--muted);font-family:var(--mono)">#'+c.id+'</span>'
-      +'<span style="font-size:11px;color:'+rule.color+';background:rgba(255,255,255,.05);border-radius:4px;padding:1px 7px">第 '+days+' 天</span>'
-      +'<span style="font-size:11px;color:var(--muted)">負責：'+staffName+'</span>'
+      +'<span style="font-weight:700;font-size:15px">'+escHtml(c.name)+'</span>'
+      +'<span style="font-size:11px;color:var(--muted);font-family:var(--mono)">#'+escHtml(c.id)+'</span>'
+      +'<span style="font-size:11px;color:'+rule.color+';background:rgba(255,255,255,.06);border-radius:4px;padding:1px 7px">第 '+days+' 天</span>'
+      +abcBadge+stageBadge
       +'</div>'
+      +'<div style="display:flex;align-items:center;gap:10px">'
+      +'<span style="font-size:11px;color:var(--muted)">'+escHtml(staffName)+'</span>'
       +'<span style="font-size:12px;color:'+statusColor+'">'+statusText+'</span>'
+      +'<span style="font-size:11px;color:var(--muted)">▼ 點擊查看歷史</span>'
       +'</div>'
-      +'<div style="font-size:11px;color:var(--muted);margin-bottom:4px">'+rule.label+'｜進群：'+c.joinDate+'</div>'
-      +logHtml
-      +'<div style="display:flex;justify-content:flex-end;margin-top:8px">'
-      +'<button class="adm-del-btn" data-uid="'+escAttr(uid)+'" data-cid="'+escAttr(c.id)+'" data-cname="'+escAttr(c.name)+'" style="background:transparent;border:1px solid var(--red);color:var(--red);border-radius:6px;padding:3px 10px;cursor:pointer;font-size:11px">🗑 刪除客戶</button>'
+      +'</div>'
+      // Sub info
+      +'<div style="padding:0 15px 8px;font-size:11px;color:var(--muted)">'+escHtml(rule.label)+'｜進群：'+escHtml(c.joinDate)+'</div>'
+      // History panel (hidden by default)
+      +'<div id="'+histId+'" style="display:none;border-top:1px solid var(--line)">'
+      // Loading placeholder - actual logs loaded on expand
+      +'<div class="hist-loading" style="padding:16px;text-align:center;color:var(--dim);font-size:13px">載入歷史記錄中…</div>'
+      +'</div>'
+      // Footer buttons
+      +'<div style="padding:8px 15px;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--line)">'
+      +'<button class="adm-del-btn" data-uid="'+escAttr(uid)+'" data-cid="'+escAttr(c.id)+'" data-cname="'+escAttr(c.name)+'" style="background:transparent;border:1px solid var(--red);color:var(--red);border-radius:6px;padding:4px 12px;cursor:pointer;font-size:11px">🗑 刪除客戶</button>'
       +'</div>'
       +'</div>';
   }).join('');
-  // Wire admin delete buttons
-  document.getElementById('cl-content').querySelectorAll('.adm-del-btn').forEach(btn=>{
-    btn.addEventListener('click',async()=>{
+
+  // Wire expand/collapse
+  el.querySelectorAll('.cl-card-header').forEach(header=>{
+    header.addEventListener('click',async()=>{
+      const histId=header.dataset.histid;
+      const panel=document.getElementById(histId);
+      if(!panel) return;
+      const isOpen=panel.style.display!=='none';
+      if(isOpen){panel.style.display='none';return}
+      panel.style.display='block';
+      // Only load if not yet loaded
+      if(!panel.dataset.loaded){
+        panel.dataset.loaded='1';
+        // Parse uid and cid from histId  hist-{uid}-{cid}
+        const parts=histId.replace('hist-','').split('-');
+        // uid is parts[0], cid is rest (in case cid has dashes)
+        // Actually stored as hist-uid-cid where cid may have no dashes
+        // Find the row to get uid/cid
+        const row=rows.find(r=>('hist-'+escAttr(r.uid)+'-'+escAttr(r.c.id))===histId);
+        if(row){
+          await loadClientHistory(panel, row.uid, row.c);
+        }
+      }
+    });
+  });
+
+  // Wire delete buttons
+  el.querySelectorAll('.adm-del-btn').forEach(btn=>{
+    btn.addEventListener('click',async(e)=>{
+      e.stopPropagation();
       if(!confirm('確認刪除客戶「'+btn.dataset.cname+'」？')) return;
       await fbRemove('clients/'+btn.dataset.uid+'/'+btn.dataset.cid);
       await fbRemove('clientlogs/'+btn.dataset.uid+'/'+btn.dataset.cid);
       await renderClientAdmin();
     });
   });
+}
+
+function buildLogRow(log, dateLabel){
+  const abcColor=log.abc==='A'?'var(--green)':log.abc==='B'?'var(--amber)':'var(--red)';
+  const tasks=[];
+  if(log.dadan) tasks.push('做單✓');
+  if(log.yt) tasks.push('YT✓');
+  if(log.explore) tasks.push('探店✓');
+  return '<div style="padding:10px 14px;border-bottom:1px solid var(--line)">'
+    +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">'
+    +'<span style="font-size:12px;font-weight:600;color:var(--accent);font-family:var(--mono)">'+escHtml(dateLabel)+'</span>'
+    +(log.abc?'<span style="background:'+abcColor+';color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:700">'+log.abc+'類</span>':'')
+    +(log.stage?'<span style="font-size:11px;color:var(--cyan)">'+escHtml(log.stage)+'</span>':'')
+    +(tasks.length?'<span style="font-size:11px;color:var(--green)">'+tasks.join(' ')+'</span>':'')
+    +(log.chatTemp?'<span style="font-size:11px;color:var(--muted)">溫度：'+escHtml(log.chatTemp)+'</span>':'')
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:11px">'
+    +(log.taskReaction?'<div><span style="color:var(--muted)">任務配合：</span>'+escHtml(log.taskReaction)+'</div>':'')
+    +(log.withdraw?'<div><span style="color:var(--muted)">出金：</span>'+escHtml(log.withdraw)+'</div>':'')
+    +(log.status?'<div style="grid-column:1/-1"><span style="color:var(--muted)">今日互動：</span>'+escHtml(log.status)+'</div>':'')
+    +(log.finance?'<div style="grid-column:1/-1"><span style="color:var(--muted)">財務缺口：</span>'+escHtml(log.finance)+'</div>':'')
+    +(log.job?'<div><span style="color:var(--muted)">職業/資金：</span>'+escHtml(log.job)+'</div>':'')
+    +(log.dream?'<div><span style="color:var(--muted)">慾望/夢想：</span>'+escHtml(log.dream)+'</div>':'')
+    +(log.storyReaction?'<div><span style="color:var(--muted)">故事反應：</span>'+escHtml(log.storyReaction)+'</div>':'')
+    +(log.groupView?'<div><span style="color:var(--muted)">群組看法：</span>'+escHtml(log.groupView)+'</div>':'')
+    +(log.reject?'<div style="grid-column:1/-1"><span style="color:var(--amber)">疑問/拒絕：</span>'+escHtml(log.reject)+'</div>':'')
+    +(log.note?'<div style="grid-column:1/-1"><span style="color:var(--muted)">備註：</span>'+escHtml(log.note)+'</div>':'')
+    +'</div>'
+    +'</div>';
+}
+
+async function loadClientHistory(panel, uid, c){
+  const allLogs=await fbGet('clientlogs/'+uid+'/'+c.id);
+  if(!allLogs){
+    panel.innerHTML='<div style="padding:16px;text-align:center;color:var(--dim);font-size:13px">此客戶尚無任何記錄</div>';
+    return;
+  }
+  const logs=Object.entries(allLogs).map(([dateKey,log])=>({
+    dateKey,
+    date:dateKey.replace(/_/g,'-'),
+    log
+  })).sort((a,b)=>a.date.localeCompare(b.date));
+
+  let html='<div style="background:var(--bg3);padding:8px 14px;font-size:11px;color:var(--muted);display:flex;justify-content:space-between">'
+    +'<span>📋 完整追蹤記錄（共 '+logs.length+' 天）</span>'
+    +'<span>進群：'+escHtml(c.joinDate)+'</span>'
+    +'</div>';
+
+  // Summary row
+  const latestLog=logs[logs.length-1];
+  if(latestLog&&latestLog.log.abc){
+    const abcColor=latestLog.log.abc==='A'?'var(--green)':latestLog.log.abc==='B'?'var(--amber)':'var(--red)';
+    html+='<div style="padding:8px 14px;background:rgba(255,255,255,.03);border-bottom:1px solid var(--line);display:flex;gap:12px;flex-wrap:wrap;font-size:11px">'
+      +'<span style="color:var(--muted)">最新狀態：</span>'
+      +(latestLog.log.abc?'<span style="background:'+abcColor+';color:#fff;border-radius:4px;padding:1px 8px;font-weight:700">'+latestLog.log.abc+'類</span>':'')
+      +(latestLog.log.stage?'<span style="color:var(--cyan)">'+escHtml(latestLog.log.stage)+'</span>':'')
+      +(latestLog.log.chatTemp?'<span style="color:var(--muted)">溫度：'+escHtml(latestLog.log.chatTemp)+'</span>':'')
+      +(latestLog.log.finance?'<span style="color:var(--text)">缺口：'+escHtml(latestLog.log.finance)+'</span>':'')
+      +'</div>';
+  }
+
+  html+=logs.map(({date,log})=>buildLogRow(log,date)).join('');
+  panel.innerHTML=html;
 }
 
 // Helper: todayStr (same as today())
