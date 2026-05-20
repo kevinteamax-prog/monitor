@@ -1411,13 +1411,24 @@ window.renderOv = async function(){
   }
 
   // Build per-user breakdown for all cumulative keys
+  // Include ALL users (even those with 0) in breakdown
+  const allUsers=await getUsers();
   const userLine=[], userInvalid=[];
+  // First add users who have records
+  const filledUids=new Set(Object.keys(byUid2));
   for(const u of Object.values(byUid2)){
     const latest=u.recs.reduce((a,b)=>SLOTS.indexOf(b.slot)>SLOTS.indexOf(a.slot)?b:a);
     const lv=latest.data.line||0;
     const iv=latest.data.invalid||0;
-    if(lv>0) userLine.push({name:u.name,val:lv,slot:latest.slot});
-    if(iv>0) userInvalid.push({name:u.name,val:iv,slot:latest.slot});
+    userLine.push({name:u.name,val:lv,slot:latest.slot});
+    userInvalid.push({name:u.name,val:iv,slot:latest.slot});
+  }
+  // Add users with no records at all as 0
+  for(const u of allUsers){
+    if(!filledUids.has(u.id)){
+      userLine.push({name:u.name,val:0,slot:'—'});
+      userInvalid.push({name:u.name,val:0,slot:'—'});
+    }
   }
   userLine.sort((a,b)=>b.val-a.val);
   userInvalid.sort((a,b)=>b.val-a.val);
@@ -1425,13 +1436,19 @@ window.renderOv = async function(){
   function detailHtmlWithSlot(arr,color){
     if(!arr.length) return '';
     return '<div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1)">'
-      +arr.map(u=>'<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0;gap:8px">'
-        +'<span style="font-size:11px;color:var(--text)">'+escHtml(u.name)+'</span>'
-        +'<div style="display:flex;align-items:center;gap:6px">'
-        +(u.slot?'<span style="font-size:10px;color:var(--muted);font-family:var(--mono)">'+escHtml(u.slot)+'</span>':'')
-        +'<span style="font-size:12px;font-weight:700;color:'+color+';font-family:var(--mono)">'+u.val+'</span>'
-        +'</div>'
-        +'</div>').join('')
+      +arr.map(u=>{
+        const isZero=u.val===0;
+        const nameColor=isZero?'var(--dim)':'var(--text)';
+        const valColor=isZero?'var(--dim)':color;
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0;gap:8px">'
+          +'<span style="font-size:11px;color:'+nameColor+'">'+escHtml(u.name)+'</span>'
+          +'<div style="display:flex;align-items:center;gap:6px">'
+          +(u.slot&&u.slot!=='—'?'<span style="font-size:10px;color:var(--muted);font-family:var(--mono)">'+escHtml(u.slot)+'</span>':'')
+          +(isZero?'<span style="font-size:10px;color:var(--dim)">未填報</span>':'')
+          +'<span style="font-size:12px;font-weight:700;color:'+valColor+';font-family:var(--mono)">'+u.val+'</span>'
+          +'</div>'
+          +'</div>';
+      }).join('')
       +'</div>';
   }
 
@@ -1441,8 +1458,15 @@ window.renderOv = async function(){
     const latest=u.recs.reduce((a,b)=>SLOTS.indexOf(b.slot)>SLOTS.indexOf(a.slot)?b:a);
     const gv=latest.data.guide||0;
     const ov=latest.data.open||0;
-    if(gv>0) userGuideSlot.push({name:u.name,val:gv,slot:latest.slot});
-    if(ov>0) userOpenSlot.push({name:u.name,val:ov,slot:latest.slot});
+    userGuideSlot.push({name:u.name,val:gv,slot:latest.slot});
+    userOpenSlot.push({name:u.name,val:ov,slot:latest.slot});
+  }
+  // Add missing users as 0
+  for(const u of allUsers){
+    if(!filledUids.has(u.id)){
+      userGuideSlot.push({name:u.name,val:0,slot:'—'});
+      userOpenSlot.push({name:u.name,val:0,slot:'—'});
+    }
   }
   userGuideSlot.sort((a,b)=>b.val-a.val);
   userOpenSlot.sort((a,b)=>b.val-a.val);
