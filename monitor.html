@@ -824,7 +824,28 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
           <button class="btn-sm" onclick="exportDeviceExcel()" style="color:var(--green);border-color:var(--green)">⬇ 匯出Excel</button>
         </div>
         <div id="dev-admin-content"><div class="empty">載入中…</div></div>
+      
+<!-- 社團總覽 -->
+      <div id="tab-grp" style="display:none">
+        <div class="fbar">
+          <select id="grp-admin-platform" onchange="renderGrpAdmin()">
+            <option value="fb">📘 臉書社團</option>
+            <option value="th">🧵 Threads 社團</option>
+          </select>
+          <select id="grp-admin-user" onchange="renderGrpAdmin()"><option value="">全部人員</option></select>
+          <select id="grp-admin-status" onchange="renderGrpAdmin()">
+            <option value="">全部狀態</option>
+            <option value="ok">✅ 可發文</option>
+            <option value="nurturing">🌱 養社團中</option>
+            <option value="warn">⚠️ 有警示</option>
+          </select>
+          <button class="btn-sm" onclick="exportGrpExcel()" style="color:var(--green);border-color:var(--green)">⬇ 匯出Excel</button>
+        </div>
+        <div id="grp-admin-alerts" style="margin-bottom:16px"></div>
+        <div id="grp-admin-content"><div class="empty">選擇條件後顯示</div></div>
       </div>
+
+</div>
 
     </div>
   </div>
@@ -861,25 +882,7 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
       <button class="btn-cancel" onclick="closeRecordEdit()">取消</button>
       <button class="btn-save" onclick="saveRecordEdit()">✓ 儲存修改</button>
       <button onclick="deleteRecord()" style="background:transparent;border:1px solid var(--red);color:var(--red);border-radius:8px;padding:10px 16px;cursor:pointer;font-size:13px;margin-left:auto">🗑 刪除此筆</button>
-      <!-- 社團總覽 -->
-      <div id="tab-grp" style="display:none">
-        <div class="fbar">
-          <select id="grp-admin-platform" onchange="renderGrpAdmin()">
-            <option value="fb">📘 臉書社團</option>
-            <option value="th">🧵 Threads 社團</option>
-          </select>
-          <select id="grp-admin-user" onchange="renderGrpAdmin()"><option value="">全部人員</option></select>
-          <select id="grp-admin-status" onchange="renderGrpAdmin()">
-            <option value="">全部狀態</option>
-            <option value="ok">✅ 可發文</option>
-            <option value="nurturing">🌱 養社團中</option>
-            <option value="warn">⚠️ 有警示</option>
-          </select>
-          <button class="btn-sm" onclick="exportGrpExcel()" style="color:var(--green);border-color:var(--green)">⬇ 匯出Excel</button>
-        </div>
-        <div id="grp-admin-alerts" style="margin-bottom:16px"></div>
-        <div id="grp-admin-content"><div class="empty">選擇條件後顯示</div></div>
-      </div>
+
     </div>
   </div>
 </div>
