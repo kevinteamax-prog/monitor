@@ -1992,7 +1992,18 @@ window.aTab = function(name,el){
   if(name==='cl')renderClientAdmin();
   if(name==='ver')renderVersionList();
   if(name==='dev')renderDeviceAdmin();
-  if(name==='grp')renderGrpAdmin();
+  if(name==='grp'){
+    // Populate user select then render
+    const _users=await getUsers();
+    const _sel=document.getElementById('grp-admin-user');
+    if(_sel){
+      const _cur=_sel.value;
+      _sel.innerHTML='<option value="">全部人員</option>';
+      _users.forEach(u=>{const o=document.createElement('option');o.value=u.id;o.textContent=u.name+' ('+u.id+')';_sel.appendChild(o);});
+      if(_cur) _sel.value=_cur;
+    }
+    renderGrpAdmin();
+  }
 }
 
 // ══════════════════════════════════════
@@ -3548,7 +3559,7 @@ async function renderGroupList(uid,platform){
       +'<span style="font-size:11px;background:rgba(255,255,255,.06);border-radius:4px;padding:1px 8px;color:'+catColor+'">'+catLabel+'</span>'
       +'<span style="font-size:11px;color:'+nurtureColor+';font-weight:600">'+nurtureStatus+'</span>'
       +'</div>'
-      +'<div style="font-size:11px;color:var(--muted);font-family:var(--mono);word-break:break-all">'+escHtml(g.url)+'</div>'
+      +'<a href="'+escHtml(g.url)+'" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent);font-family:var(--mono);word-break:break-all;text-decoration:none">'+escHtml(g.url)+'</a>'
       +'<div style="font-size:11px;color:var(--muted);margin-top:2px">加入：'+escHtml(g.joinDate)+'</div>'
       +'</div>'
       // Actions
@@ -3669,7 +3680,7 @@ window.renderGrpAdmin = async function(){
       +'</div>'
       +'<span style="font-size:12px;color:'+statusColor+';font-weight:600">'+statusLabel+'</span>'
       +'</div>'
-      +'<div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-family:var(--mono);word-break:break-all">'+escHtml(g.url)+'</div>'
+      +'<a href="'+escHtml(g.url)+'" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent);font-family:var(--mono);word-break:break-all;text-decoration:none;display:block;margin-bottom:6px">'+escHtml(g.url)+'</a>'
       +'<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px">'
       +'<span>加入：<span style="color:var(--text)">'+escHtml(g.joinDate)+'</span></span>'
       +'<span>已養：<span style="color:var(--text);font-weight:600">'+days+'</span>天</span>'
