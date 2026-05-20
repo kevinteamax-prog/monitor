@@ -402,6 +402,13 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
         <div class="ffield" style="flex:1;min-width:200px"><label>社團網址</label><input type="text" id="grp-join-url" placeholder="https://www.facebook.com/groups/xxxxx" style="font-size:13px;text-align:left;font-family:var(--mono)"></div>
         <div class="ffield" style="min-width:130px"><label>社團名稱（選填）</label><input type="text" id="grp-join-name" placeholder="社團名稱" style="font-size:13px;text-align:left"></div>
+        <div class="ffield" style="min-width:110px"><label>分類</label>
+          <select id="grp-join-cat" style="width:100%;background:#0a0f2a;border:1px solid var(--accent);color:#fff;border-radius:8px;padding:8px 10px;outline:none;font-size:13px">
+            <option value="active">有效社團</option>
+            <option value="invalid">無效社團</option>
+            <option value="new">新加入待觀察</option>
+          </select>
+        </div>
         <button class="btn-sub" onclick="joinGroup()" style="flex:none;padding:9px 18px;font-size:13px;margin-bottom:0">加入記錄</button>
       </div>
       <span id="grp-join-msg" style="font-size:12px;display:none;margin-top:8px"></span>
@@ -445,7 +452,15 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
     </div>
 
     <!-- My Groups List -->
-    <div class="fslabel" style="margin-bottom:10px">我的社團列表</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+      <div class="fslabel" style="margin-bottom:0">我的社團列表</div>
+      <div style="display:flex;gap:6px">
+        <button id="gf-all" onclick="setGrpFilter('all')" style="font-size:11px;padding:4px 12px;border-radius:6px;background:var(--accent);color:#fff;border:none;cursor:pointer;font-weight:600">全部</button>
+        <button id="gf-active" onclick="setGrpFilter('active')" style="font-size:11px;padding:4px 12px;border-radius:6px;background:var(--bg3);color:var(--muted);border:1px solid var(--line2);cursor:pointer">有效</button>
+        <button id="gf-invalid" onclick="setGrpFilter('invalid')" style="font-size:11px;padding:4px 12px;border-radius:6px;background:var(--bg3);color:var(--muted);border:1px solid var(--line2);cursor:pointer">無效</button>
+        <button id="gf-new" onclick="setGrpFilter('new')" style="font-size:11px;padding:4px 12px;border-radius:6px;background:var(--bg3);color:var(--muted);border:1px solid var(--line2);cursor:pointer">待觀察</button>
+      </div>
+    </div>
     <div id="grp-list" style="display:flex;flex-direction:column;gap:8px"></div>
   </div>
 
@@ -3270,8 +3285,9 @@ window.joinGroup = async function(){
   const msg=document.getElementById('grp-join-msg');
   if(!url){showMsg(msg,'⚠ 請輸入社團網址','var(--amber)');return}
 
+  const cat=document.getElementById('grp-join-cat').value||'active';
   const gid=genGid(url);
-  const group={gid,url,name:name||'',platform:CUR_GRP_PLATFORM,joinDate:todayStr(),uid:s.uid,ts:Date.now()};
+  const group={gid,url,name:name||'',platform:CUR_GRP_PLATFORM,joinDate:todayStr(),uid:s.uid,cat,ts:Date.now()};
   await fbSet(grpPath(s.uid,CUR_GRP_PLATFORM,gid),group);
   document.getElementById('grp-join-url').value='';
   document.getElementById('grp-join-name').value='';
@@ -3373,11 +3389,28 @@ async function checkGroupAlerts(uid,platform){
 }
 
 // ── RENDER GROUP LIST ──
+let CUR_GRP_FILTER='all';
+window.setGrpFilter=function(f){
+  CUR_GRP_FILTER=f;
+  ['all','active','invalid','new'].forEach(k=>{
+    const btn=document.getElementById('gf-'+k);
+    if(!btn) return;
+    if(k===f){btn.style.background='var(--accent)';btn.style.color='#fff';btn.style.border='none';btn.style.fontWeight='600';}
+    else{btn.style.background='var(--bg3)';btn.style.color='var(--muted)';btn.style.border='1px solid var(--line2)';btn.style.fontWeight='400';}
+  });
+  const s=getSession(); if(s) renderGroupList(s.uid,CUR_GRP_PLATFORM);
+}
+
+const CAT_LABELS={'active':'✅ 有效社團','invalid':'❌ 無效社團','new':'👀 待觀察'};
+const CAT_COLORS={'active':'var(--green)','invalid':'var(--red)','new':'var(--amber)'};
+
 async function renderGroupList(uid,platform){
   const el=document.getElementById('grp-list');
   if(!el) return;
-  const groups=await getMyGroups(uid,platform);
-  if(!groups.length){el.innerHTML='<div style="color:var(--dim);font-size:13px;padding:12px">尚無社團記錄，請先在第一步加入社團</div>';return}
+  const allGroups=await getMyGroups(uid,platform);
+  const groups=CUR_GRP_FILTER==='all'?allGroups:allGroups.filter(g=>(g.cat||'active')===CUR_GRP_FILTER);
+  if(!allGroups.length){el.innerHTML='<div style="color:var(--dim);font-size:13px;padding:12px">尚無社團記錄，請先在第一步加入社團</div>';return}
+  if(!groups.length){el.innerHTML='<div style="color:var(--dim);font-size:13px;padding:12px">此分類沒有社團</div>';return}
 
   const today=todayStr();
   let html='';
@@ -3389,37 +3422,72 @@ async function renderGroupList(uid,platform){
     const canPostNow=canPost(nurtureLogs);
     const todayNurture=nurtureLogs.find(l=>l.date===today);
     const todayPost=postLogs.find(l=>l.date===today);
+    const cat=g.cat||'active';
+    const catColor=CAT_COLORS[cat]||'var(--muted)';
+    const catLabel=CAT_LABELS[cat]||cat;
+    const nurtureStatus=canPostNow?'✅ 可發文':days>=1?'🌱 養中('+days+'/3天)':'🆕 未開始養';
+    const nurtureColor=canPostNow?'var(--green)':days>=1?'var(--amber)':'var(--muted)';
+    const totalInteract=nurtureLogs.reduce((s,l)=>s+(l.likes||0)+(l.comments||0),0);
 
-    const statusColor=canPostNow?'var(--green)':days>=1?'var(--amber)':'var(--muted)';
-    const statusLabel=canPostNow?'✅ 可發文':'🌱 養社團中（'+days+'/3 天）';
-
-    html+='<div style="background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:8px">'
-      +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px">'
+    html+='<div style="background:var(--bg2);border:1px solid var(--line);border-left:3px solid '+catColor+';border-radius:10px;padding:12px 14px">'
+      // Header
+      +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px">'
       +'<div style="flex:1">'
-      +'<div style="font-size:13px;font-weight:600;margin-bottom:2px">'+escHtml(g.name||'（未命名）')+'</div>'
+      +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px">'
+      +'<span style="font-size:14px;font-weight:700">'+escHtml(g.name||'（未命名）')+'</span>'
+      +'<span style="font-size:11px;background:rgba(255,255,255,.06);border-radius:4px;padding:1px 8px;color:'+catColor+'">'+catLabel+'</span>'
+      +'<span style="font-size:11px;color:'+nurtureColor+';font-weight:600">'+nurtureStatus+'</span>'
+      +'</div>'
       +'<div style="font-size:11px;color:var(--muted);font-family:var(--mono);word-break:break-all">'+escHtml(g.url)+'</div>'
-      +'<div style="font-size:11px;color:var(--muted);margin-top:3px">加入日期：'+escHtml(g.joinDate)+'</div>'
+      +'<div style="font-size:11px;color:var(--muted);margin-top:2px">加入：'+escHtml(g.joinDate)+'</div>'
       +'</div>'
-      +'<span style="font-size:12px;color:'+statusColor+';font-weight:600;white-space:nowrap">'+statusLabel+'</span>'
+      // Actions
+      +'<div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">'
+      +'<select class="grp-cat-sel" data-gid="'+escAttr(g.gid)+'" style="font-size:11px;background:var(--bg3);border:1px solid var(--line2);color:var(--text);border-radius:6px;padding:3px 7px;cursor:pointer">'
+      +'<option value="active"'+(cat==='active'?' selected':'')+'>有效社團</option>'
+      +'<option value="invalid"'+(cat==='invalid'?' selected':'')+'>無效社團</option>'
+      +'<option value="new"'+(cat==='new'?' selected':'')+'>待觀察</option>'
+      +'</select>'
+      +'<button class="grp-del-btn" data-gid="'+escAttr(g.gid)+'" data-name="'+escAttr(g.name||g.url)+'" style="font-size:11px;background:transparent;border:1px solid var(--red);color:var(--red);border-radius:6px;padding:3px 10px;cursor:pointer">🗑 刪除</button>'
       +'</div>'
-      // Stats row
+      +'</div>'
+      // Stats
       +'<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;margin-bottom:6px">'
-      +'<span style="color:var(--muted)">已養 <span style="color:var(--text);font-weight:600">'+days+'</span> 天</span>'
-      +'<span style="color:var(--muted)">總互動 <span style="color:'+(hasInteract?'var(--green)':'var(--red)')+'">'+nurtureLogs.reduce((s,l)=>s+(l.likes||0)+(l.comments||0),0)+'</span> 次</span>'
-      +'<span style="color:var(--muted)">累計發文 <span style="color:var(--accent)">'+postLogs.length+'</span> 次</span>'
+      +'<span style="color:var(--muted)">已養 <b style="color:var(--text)">'+days+'</b> 天</span>'
+      +'<span style="color:var(--muted)">總互動 <b style="color:'+(hasInteract?'var(--green)':'var(--red)')+'">'+totalInteract+'</b> 次</span>'
+      +'<span style="color:var(--muted)">累計發文 <b style="color:var(--accent)">'+postLogs.length+'</b> 次</span>'
       +'</div>'
-      // Today status
-      +'<div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11px">'
+      // Today badges
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap;font-size:11px">'
       +(todayNurture
         ?'<span style="background:rgba(61,214,140,.1);border:1px solid rgba(61,214,140,.25);border-radius:4px;padding:2px 8px;color:var(--green)">今日已養 👍'+todayNurture.likes+' 💬'+todayNurture.comments+'</span>'
         :'<span style="background:rgba(244,96,96,.1);border:1px solid rgba(244,96,96,.25);border-radius:4px;padding:2px 8px;color:var(--red)">今日未養</span>')
-      +(todayPost
-        ?'<span style="background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.25);border-radius:4px;padding:2px 8px;color:var(--accent)">今日已發文</span>'
-        :'')
+      +(todayPost?'<span style="background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.25);border-radius:4px;padding:2px 8px;color:var(--accent)">今日已發文</span>':'')
       +'</div>'
       +'</div>';
   }
   el.innerHTML=html;
+
+  // Wire category change
+  el.querySelectorAll('.grp-cat-sel').forEach(sel=>{
+    sel.addEventListener('change',async()=>{
+      const s=getSession(); if(!s) return;
+      await fbSet(grpPath(s.uid,CUR_GRP_PLATFORM,sel.dataset.gid)+'/cat',sel.value);
+      await renderGroupList(s.uid,CUR_GRP_PLATFORM);
+    });
+  });
+
+  // Wire delete
+  el.querySelectorAll('.grp-del-btn').forEach(btn=>{
+    btn.addEventListener('click',async()=>{
+      if(!confirm('確認刪除社團「'+btn.dataset.name+'」？相關養社團和發文記錄也會一起刪除。')) return;
+      const s=getSession(); if(!s) return;
+      await fbRemove(grpPath(s.uid,CUR_GRP_PLATFORM,btn.dataset.gid));
+      await fbRemove('nurture/'+CUR_GRP_PLATFORM+'/'+s.uid+'/'+btn.dataset.gid);
+      await fbRemove('posts/'+CUR_GRP_PLATFORM+'/'+s.uid+'/'+btn.dataset.gid);
+      await initGroupTab(s.uid);
+    });
+  });
 }
 
 // ── ADMIN GROUP VIEW ──
