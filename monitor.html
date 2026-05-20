@@ -1982,7 +1982,7 @@ window.exportData = async function(){
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`datapulse_${today()}.json`;a.click();
 }
 
-window.aTab = function(name,el){
+window.aTab = async function(name,el){
   document.querySelectorAll('.aside-item').forEach(i=>i.classList.remove('on'));el.classList.add('on');
   ['ov','dt','ss','us','cfg','cl','ver','dev','grp'].forEach(t=>document.getElementById('tab-'+t).style.display=t===name?'block':'none');
   if(name==='ov')renderOv();
