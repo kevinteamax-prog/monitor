@@ -389,79 +389,143 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
     <!-- Platform tabs -->
     <div style="display:flex;gap:6px;margin-bottom:18px">
       <button id="grp-tab-fb" onclick="switchGrpPlatform('fb')" style="padding:7px 18px;font-size:13px;font-weight:700;color:#fff;background:var(--accent);border:none;border-radius:8px;cursor:pointer">📘 臉書社團</button>
-      <button id="grp-tab-th" onclick="switchGrpPlatform('th')" style="padding:7px 18px;font-size:13px;font-weight:500;color:var(--muted);background:var(--bg3);border:1px solid var(--line2);border-radius:8px;cursor:pointer">🧵 Threads 社團</button>
+      <button id="grp-tab-th" onclick="switchGrpPlatform('th')" style="padding:7px 18px;font-size:13px;font-weight:500;color:var(--muted);background:var(--bg3);border:1px solid var(--line2);border-radius:8px;cursor:pointer">🧵 Threads 帳號</button>
     </div>
 
     <!-- Alerts -->
     <div id="grp-alerts" style="margin-bottom:14px"></div>
 
-    <!-- Step 1: Join Group -->
-    <div class="fcard" style="margin-bottom:12px">
-      <div class="fslabel">第一步 ➕ 加入社團</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:12px">記錄今天加入的新社團網址，系統會追蹤加入日期</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
-        <div class="ffield" style="flex:1;min-width:200px"><label>社團網址</label><input type="text" id="grp-join-url" placeholder="https://www.facebook.com/groups/xxxxx" style="font-size:13px;text-align:left;font-family:var(--mono)"></div>
-        <div class="ffield" style="min-width:130px"><label>社團名稱（選填）</label><input type="text" id="grp-join-name" placeholder="社團名稱" style="font-size:13px;text-align:left"></div>
-        <div class="ffield" style="min-width:110px"><label>分類</label>
-          <select id="grp-join-cat" style="width:100%;background:#0a0f2a;border:1px solid var(--accent);color:#fff;border-radius:8px;padding:8px 10px;outline:none;font-size:13px">
-            <option value="active">有效社團</option>
-            <option value="invalid">無效社團</option>
-            <option value="new">新加入待觀察</option>
+    <!-- FB SECTION -->
+    <div id="fb-section">
+      <!-- Step 1: Join Group -->
+      <div class="fcard" style="margin-bottom:12px">
+        <div class="fslabel">第一步 ➕ 加入社團</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px">記錄今天加入的新社團網址，系統會追蹤加入日期</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+          <div class="ffield" style="flex:1;min-width:200px"><label>社團網址</label><input type="text" id="grp-join-url" placeholder="https://www.facebook.com/groups/xxxxx" style="font-size:13px;text-align:left;font-family:var(--mono)"></div>
+          <div class="ffield" style="min-width:130px"><label>社團名稱（選填）</label><input type="text" id="grp-join-name" placeholder="社團名稱" style="font-size:13px;text-align:left"></div>
+          <div class="ffield" style="min-width:110px"><label>分類</label>
+            <select id="grp-join-cat" style="width:100%;background:#0a0f2a;border:1px solid var(--accent);color:#fff;border-radius:8px;padding:8px 10px;outline:none;font-size:13px">
+              <option value="active">有效社團</option>
+              <option value="invalid">無效社團</option>
+              <option value="new">新加入待觀察</option>
+            </select>
+          </div>
+          <button class="btn-sub" onclick="joinGroup()" style="flex:none;padding:9px 18px;font-size:13px;margin-bottom:0">加入記錄</button>
+        </div>
+        <span id="grp-join-msg" style="font-size:12px;display:none;margin-top:8px"></span>
+      </div>
+      <!-- Step 2: Nurture -->
+      <div class="fcard" style="margin-bottom:12px">
+        <div class="fslabel">第二步 🌱 今日養社團記錄</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px">每天至少記錄一次，養滿 3 天且有互動才可以發文。沒有記錄會跳出警示。</div>
+        <div style="margin-bottom:10px">
+          <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:5px">選擇社團</label>
+          <select id="grp-nurture-sel" style="width:100%;background:#0a0f2a;border:1px solid var(--accent);color:#fff;border-radius:8px;padding:8px 12px;outline:none;font-size:13px"><option value="">載入中…</option></select>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div class="ffield"><label>今天發了什麼文/留言內容</label><textarea id="grp-nurture-content" rows="2" placeholder="例：分享了一篇理財文章，留言問大家有沒有副業" style="width:100%;background:#0a0f2a;border:1px solid var(--accent);color:#fff;border-radius:8px;padding:8px 12px;outline:none;font-size:13px;resize:vertical"></textarea></div>
+          <div>
+            <div class="ffield" style="margin-bottom:8px"><label>底下幾人按讚</label><input type="number" id="grp-nurture-likes" min="0" value="0" style="font-size:16px;text-align:center"></div>
+            <div class="ffield"><label>底下幾人留言回應</label><input type="number" id="grp-nurture-comments" min="0" value="0" style="font-size:16px;text-align:center"></div>
+          </div>
+        </div>
+        <button class="btn-sub" onclick="submitNurture()" style="width:100%;padding:11px;font-size:14px">✓ 提交今日養社團記錄</button>
+        <span id="grp-nurture-msg" style="font-size:12px;display:none;margin-top:8px"></span>
+      </div>
+      <!-- Step 3: Post -->
+      <div class="fcard" style="margin-bottom:12px">
+        <div class="fslabel">第三步 📢 發文記錄</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px">只能選已養 3 天以上且有互動的社團發文</div>
+        <div style="margin-bottom:10px">
+          <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:5px">選擇要發文的社團（只顯示已養 3 天以上）</label>
+          <select id="grp-post-sel" style="width:100%;background:#0a0f2a;border:1px solid var(--accent);color:#fff;border-radius:8px;padding:8px 12px;outline:none;font-size:13px"><option value="">載入中…</option></select>
+        </div>
+        <div id="grp-post-warning" style="display:none;background:rgba(244,96,96,.1);border:1px solid var(--red);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:12px;color:var(--red)"></div>
+        <div class="ffield" style="margin-bottom:10px"><label>發文內容摘要</label><textarea id="grp-post-content" rows="2" placeholder="發了什麼內容？" style="width:100%;background:#0a0f2a;border:1px solid var(--accent);color:#fff;border-radius:8px;padding:8px 12px;outline:none;font-size:13px;resize:vertical"></textarea></div>
+        <button class="btn-sub" onclick="submitPost()" style="width:100%;padding:11px;font-size:14px">✓ 記錄今日發文</button>
+        <span id="grp-post-msg" style="font-size:12px;display:none;margin-top:8px"></span>
+      </div>
+      <!-- My Groups List -->
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+        <div class="fslabel" style="margin-bottom:0">我的社團列表</div>
+        <div style="display:flex;gap:6px">
+          <button id="gf-all" onclick="setGrpFilter('all')" style="font-size:11px;padding:4px 12px;border-radius:6px;background:var(--accent);color:#fff;border:none;cursor:pointer;font-weight:600">全部</button>
+          <button id="gf-active" onclick="setGrpFilter('active')" style="font-size:11px;padding:4px 12px;border-radius:6px;background:var(--bg3);color:var(--muted);border:1px solid var(--line2);cursor:pointer">有效</button>
+          <button id="gf-invalid" onclick="setGrpFilter('invalid')" style="font-size:11px;padding:4px 12px;border-radius:6px;background:var(--bg3);color:var(--muted);border:1px solid var(--line2);cursor:pointer">無效</button>
+          <button id="gf-new" onclick="setGrpFilter('new')" style="font-size:11px;padding:4px 12px;border-radius:6px;background:var(--bg3);color:var(--muted);border:1px solid var(--line2);cursor:pointer">待觀察</button>
+        </div>
+      </div>
+      <div id="grp-list" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+
+    <!-- THREADS SECTION -->
+    <div id="th-section" style="display:none">
+
+      <!-- 帳號定位設定 -->
+      <div class="fcard" style="margin-bottom:12px">
+        <div class="fslabel">⚙️ Threads 帳號定位設定</div>
+        <div style="background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:#c8c0e8;line-height:1.7">
+          💡 <b>為什麼要設定定位？</b><br>
+          Threads 算法會根據你發的內容，把你的帳號推送給相似興趣的人。<br>
+          如果你走「活動路線」，就要持續發活動相關內容，才能吸引對活動有興趣的潛在客戶。<br>
+          <b>定位越清晰 → 演算法推送越精準 → 引流效果越好</b>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div>
+            <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:5px">帳號路線</label>
+            <select id="th-route" style="width:100%;background:#0a0f2a;border:1px solid var(--purple);color:#fff;border-radius:8px;padding:9px 12px;outline:none;font-size:13px" onchange="updateRouteGuide()">
+              <option value="">選擇路線</option>
+              <option value="activity">🎪 活動路線（展覽/市集/旅遊/美食）</option>
+              <option value="work">💼 工作路線（職場/副業/斜槓/創業）</option>
+              <option value="finance">💰 理財路線（投資/存錢/被動收入）</option>
+              <option value="life">🌿 生活路線（日常/心情/育兒/健康）</option>
+              <option value="custom">✏️ 自訂路線</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:5px">自訂路線說明（走自訂路線時填）</label>
+            <input type="text" id="th-custom-route" placeholder="例：單親媽媽日常分享" style="width:100%;background:#0a0f2a;border:1px solid var(--line2);color:#fff;border-radius:8px;padding:9px 12px;outline:none;font-size:13px">
+          </div>
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:5px">自我簡介內容</label>
+          <textarea id="th-bio" rows="2" placeholder="例：33歲單親媽媽｜工廠文書｜喜歡發現生活小確幸｜偶爾分享副業心得" style="width:100%;background:#0a0f2a;border:1px solid var(--line2);color:#fff;border-radius:8px;padding:9px 12px;outline:none;font-size:13px;resize:vertical"></textarea>
+        </div>
+        <!-- Route guide -->
+        <div id="th-route-guide" style="display:none;background:rgba(79,142,247,.07);border:1px solid rgba(79,142,247,.2);border-radius:8px;padding:12px 14px;margin-bottom:12px;font-size:12px;line-height:1.7"></div>
+        <button class="btn-sub" onclick="saveTHProfile()" style="flex:none;padding:9px 22px;font-size:13px;width:auto">💾 儲存帳號定位</button>
+        <span id="th-profile-msg" style="font-size:12px;display:none;margin-left:10px"></span>
+      </div>
+
+      <!-- 今日發文記錄 -->
+      <div class="fcard" style="margin-bottom:12px">
+        <div class="fslabel">📝 今日 Threads 發文記錄</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px">每天至少發一篇，要符合你的帳號路線。沒有記錄會跳出警示。</div>
+        <div id="th-route-reminder" style="font-size:12px;color:var(--purple);margin-bottom:12px;font-weight:500"></div>
+        <div style="margin-bottom:10px">
+          <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:5px">今日發文主題</label>
+          <select id="th-post-topic" style="width:100%;background:#0a0f2a;border:1px solid var(--accent);color:#fff;border-radius:8px;padding:8px 12px;outline:none;font-size:13px">
+            <option value="">選擇主題類型</option>
           </select>
         </div>
-        <button class="btn-sub" onclick="joinGroup()" style="flex:none;padding:9px 18px;font-size:13px;margin-bottom:0">加入記錄</button>
-      </div>
-      <span id="grp-join-msg" style="font-size:12px;display:none;margin-top:8px"></span>
-    </div>
-
-    <!-- Step 2: Nurture -->
-    <div class="fcard" style="margin-bottom:12px">
-      <div class="fslabel">第二步 🌱 今日養社團記錄</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:12px">每天至少記錄一次，養滿 3 天且有互動才可以發文。沒有記錄會跳出警示。</div>
-      <div style="margin-bottom:10px">
-        <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:5px">選擇社團</label>
-        <select id="grp-nurture-sel" style="width:100%;background:#0a0f2a;border:1px solid var(--accent);color:#fff;border-radius:8px;padding:8px 12px;outline:none;font-size:13px">
-          <option value="">載入中…</option>
-        </select>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-        <div class="ffield"><label>今天發了什麼文/留言內容</label><textarea id="grp-nurture-content" rows="2" placeholder="例：分享了一篇理財文章，留言問大家有沒有副業" style="width:100%;background:#0a0f2a;border:1px solid var(--accent);color:#fff;border-radius:8px;padding:8px 12px;outline:none;font-size:13px;resize:vertical"></textarea></div>
-        <div>
-          <div class="ffield" style="margin-bottom:8px"><label>底下幾人按讚</label><input type="number" id="grp-nurture-likes" min="0" value="0" style="font-size:16px;text-align:center"></div>
-          <div class="ffield"><label>底下幾人留言回應</label><input type="number" id="grp-nurture-comments" min="0" value="0" style="font-size:16px;text-align:center"></div>
+        <div class="ffield" style="margin-bottom:10px">
+          <label>發文內容摘要</label>
+          <textarea id="th-post-content" rows="3" placeholder="今天發了什麼？主要想傳達什麼？" style="width:100%;background:#0a0f2a;border:1px solid var(--accent);color:#fff;border-radius:8px;padding:8px 12px;outline:none;font-size:13px;resize:vertical"></textarea>
         </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+          <div class="ffield"><label>按讚數</label><input type="number" id="th-post-likes" min="0" value="0" style="font-size:16px;text-align:center"></div>
+          <div class="ffield"><label>留言數</label><input type="number" id="th-post-comments" min="0" value="0" style="font-size:16px;text-align:center"></div>
+          <div class="ffield"><label>轉發數</label><input type="number" id="th-post-shares" min="0" value="0" style="font-size:16px;text-align:center"></div>
+        </div>
+        <button class="btn-sub" onclick="submitTHPost()" style="width:100%;padding:11px;font-size:14px">✓ 提交今日 Threads 發文</button>
+        <span id="th-post-msg" style="font-size:12px;display:none;margin-top:8px"></span>
       </div>
-      <button class="btn-sub" onclick="submitNurture()" style="width:100%;padding:11px;font-size:14px">✓ 提交今日養社團記錄</button>
-      <span id="grp-nurture-msg" style="font-size:12px;display:none;margin-top:8px"></span>
-    </div>
 
-    <!-- Step 3: Post -->
-    <div class="fcard" style="margin-bottom:12px">
-      <div class="fslabel">第三步 📢 發文記錄</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:12px">只能選已養 3 天以上且有互動的社團發文</div>
-      <div style="margin-bottom:10px">
-        <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:5px">選擇要發文的社團（只顯示已養 3 天以上）</label>
-        <select id="grp-post-sel" style="width:100%;background:#0a0f2a;border:1px solid var(--accent);color:#fff;border-radius:8px;padding:8px 12px;outline:none;font-size:13px">
-          <option value="">載入中…</option>
-        </select>
-      </div>
-      <div id="grp-post-warning" style="display:none;background:rgba(244,96,96,.1);border:1px solid var(--red);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:12px;color:var(--red)"></div>
-      <div class="ffield" style="margin-bottom:10px"><label>發文內容摘要</label><textarea id="grp-post-content" rows="2" placeholder="發了什麼內容？" style="width:100%;background:#0a0f2a;border:1px solid var(--accent);color:#fff;border-radius:8px;padding:8px 12px;outline:none;font-size:13px;resize:vertical"></textarea></div>
-      <button class="btn-sub" onclick="submitPost()" style="width:100%;padding:11px;font-size:14px">✓ 記錄今日發文</button>
-      <span id="grp-post-msg" style="font-size:12px;display:none;margin-top:8px"></span>
+      <!-- 發文歷史 -->
+      <div class="fslabel" style="margin-bottom:10px">Threads 發文歷史</div>
+      <div id="th-history" style="display:flex;flex-direction:column;gap:8px"></div>
     </div>
-
-    <!-- My Groups List -->
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
-      <div class="fslabel" style="margin-bottom:0">我的社團列表</div>
-      <div style="display:flex;gap:6px">
-        <button id="gf-all" onclick="setGrpFilter('all')" style="font-size:11px;padding:4px 12px;border-radius:6px;background:var(--accent);color:#fff;border:none;cursor:pointer;font-weight:600">全部</button>
-        <button id="gf-active" onclick="setGrpFilter('active')" style="font-size:11px;padding:4px 12px;border-radius:6px;background:var(--bg3);color:var(--muted);border:1px solid var(--line2);cursor:pointer">有效</button>
-        <button id="gf-invalid" onclick="setGrpFilter('invalid')" style="font-size:11px;padding:4px 12px;border-radius:6px;background:var(--bg3);color:var(--muted);border:1px solid var(--line2);cursor:pointer">無效</button>
-        <button id="gf-new" onclick="setGrpFilter('new')" style="font-size:11px;padding:4px 12px;border-radius:6px;background:var(--bg3);color:var(--muted);border:1px solid var(--line2);cursor:pointer">待觀察</button>
-      </div>
-    </div>
-    <div id="grp-list" style="display:flex;flex-direction:column;gap:8px"></div>
   </div>
 
   <!-- CLIENT TRACKING TAB -->
@@ -3228,20 +3292,66 @@ function canPost(nurtureLogs){
 }
 
 // ── SWITCH PLATFORM ──
+// Route topics map
+const ROUTE_TOPICS={
+  activity:['活動/展覽/市集分享','旅遊景點推薦','美食探店心得','週末好去處','節慶活動預告','活動現場直擊'],
+  work:['職場甘苦談','副業心得分享','接案/斜槓經驗','工作效率技巧','求職/轉職心情','創業觀察'],
+  finance:['理財觀念分享','存錢挑戰記錄','投資心得（無廣告）','被動收入目標','省錢生活技巧','財務焦慮日記'],
+  life:['日常生活點滴','心情感悟','育兒/親子日記','健康/運動記錄','生活小確幸','家庭日常'],
+  custom:['符合定位的內容','生活分享','心情日記','其他']
+};
+
+const ROUTE_GUIDES={
+  activity:'🎪 活動路線要點<br>• 固定分享在地活動、展覽、市集資訊<br>• 多用照片和生活感語氣，不要太商業<br>• 可以帶入「朋友介紹我去」的自然引導<br>• 目標受眾：喜歡出門、有閒錢、生活品質好的人',
+  work:'💼 工作路線要點<br>• 分享職場真實心聲、加班苦水、薪水焦慮<br>• 帶入「在找副業」的需求是最自然的鋪墊<br>• 可以偶爾分享「朋友推薦的兼職」心得<br>• 目標受眾：上班族、想增加收入、有財務壓力的人',
+  finance:'💰 理財路線要點<br>• 分享存錢目標、理財學習心得<br>• 強調「小資族也能理財」的親切感<br>• 帶入「發現一個不錯的被動收入管道」很自然<br>• 目標受眾：想存錢、對投資有興趣、有財務焦慮的人',
+  life:'🌿 生活路線要點<br>• 真實的日常生活感，容易引發共鳴<br>• 帶入家庭開銷壓力、物價高漲等痛點<br>• 偶爾分享「靠這個補貼生活費」最自然<br>• 目標受眾：家庭主婦、媽媽、有生活壓力的人',
+  custom:'✏️ 自訂路線：請確保每天發的內容都圍繞你設定的主題，保持一致性！'
+};
+
+window.updateRouteGuide = function(){
+  const route=document.getElementById('th-route').value;
+  const guide=document.getElementById('th-route-guide');
+  const topicSel=document.getElementById('th-post-topic');
+  const reminder=document.getElementById('th-route-reminder');
+  if(!route){guide.style.display='none';return}
+  guide.style.display='block';
+  guide.innerHTML=ROUTE_GUIDES[route]||'';
+  // Update topic options
+  const topics=ROUTE_TOPICS[route]||ROUTE_TOPICS.custom;
+  if(topicSel){
+    topicSel.innerHTML='<option value="">選擇主題類型</option>'
+      +topics.map(t=>'<option value="'+escAttr(t)+'">'+escHtml(t)+'</option>').join('');
+  }
+  if(reminder){
+    const labels={activity:'🎪 活動路線',work:'💼 工作路線',finance:'💰 理財路線',life:'🌿 生活路線',custom:'✏️ 自訂路線'};
+    reminder.textContent='今日發文請符合你的路線：'+( labels[route]||route);
+  }
+}
+
 window.switchGrpPlatform = async function(platform){
   CUR_GRP_PLATFORM=platform;
   ['fb','th'].forEach(p=>{
     const btn=document.getElementById('grp-tab-'+p);
     if(!btn) return;
     if(p===platform){
-      btn.style.background='var(--accent)';btn.style.color='#fff';
-      btn.style.border='none';btn.style.fontWeight='700';
+      btn.style.background=p==='fb'?'var(--accent)':'var(--purple)';
+      btn.style.color='#fff';btn.style.border='none';btn.style.fontWeight='700';
     } else {
       btn.style.background='var(--bg3)';btn.style.color='var(--muted)';
       btn.style.border='1px solid var(--line2)';btn.style.fontWeight='500';
     }
   });
-  const s=getSession(); if(s) await initGroupTab(s.uid);
+  // Show/hide sections
+  const fbSec=document.getElementById('fb-section');
+  const thSec=document.getElementById('th-section');
+  if(fbSec) fbSec.style.display=platform==='fb'?'block':'none';
+  if(thSec) thSec.style.display=platform==='th'?'block':'none';
+  const s=getSession();
+  if(s){
+    if(platform==='fb') await initGroupTab(s.uid);
+    else await initTHTab(s.uid);
+  }
 }
 
 // ── INIT GROUP TAB ──
@@ -3609,6 +3719,126 @@ async function refreshUserSelectsWithGrp(){
     users.forEach(u=>{const o=document.createElement('option');o.value=u.id;o.textContent=u.name+' ('+u.id+')';sel.appendChild(o);});
     sel.value=cur;
   }
+}
+
+// ══════════════════════════════════════
+// THREADS SPECIFIC FUNCTIONS
+// ══════════════════════════════════════
+function thProfilePath(uid){ return 'th_profile/'+uid; }
+function thPostPath(uid,date){ return 'th_posts/'+uid+'/'+date.replace(/-/g,'_'); }
+
+async function initTHTab(uid){
+  await loadTHProfile(uid);
+  await renderTHHistory(uid);
+  await checkTHAlerts(uid);
+}
+
+async function loadTHProfile(uid){
+  const profile=await fbGet(thProfilePath(uid));
+  if(!profile) return;
+  const routeSel=document.getElementById('th-route');
+  const bioEl=document.getElementById('th-bio');
+  const customEl=document.getElementById('th-custom-route');
+  if(routeSel&&profile.route) routeSel.value=profile.route;
+  if(bioEl&&profile.bio) bioEl.value=profile.bio;
+  if(customEl&&profile.customRoute) customEl.value=profile.customRoute;
+  updateRouteGuide();
+  // Show route reminder
+  const reminder=document.getElementById('th-route-reminder');
+  if(reminder&&profile.route){
+    const labels={activity:'🎪 活動路線',work:'💼 工作路線',finance:'💰 理財路線',life:'🌿 生活路線',custom:'✏️ 自訂路線'};
+    reminder.textContent='今日發文請符合你的路線：'+(labels[profile.route]||profile.route);
+  }
+}
+
+window.saveTHProfile = async function(){
+  const s=getSession(); if(!s) return;
+  const route=document.getElementById('th-route').value;
+  const bio=document.getElementById('th-bio').value.trim();
+  const customRoute=document.getElementById('th-custom-route').value.trim();
+  const msg=document.getElementById('th-profile-msg');
+  if(!route){showMsg(msg,'⚠ 請選擇帳號路線','var(--amber)');return}
+  await fbSet(thProfilePath(s.uid),{uid:s.uid,route,bio,customRoute,updatedAt:todayStr()});
+  showMsg(msg,'✅ 帳號定位已儲存','var(--green)');
+}
+
+window.submitTHPost = async function(){
+  const s=getSession(); if(!s) return;
+  const topic=document.getElementById('th-post-topic').value;
+  const content_=document.getElementById('th-post-content').value.trim();
+  const likes=+(document.getElementById('th-post-likes').value)||0;
+  const comments=+(document.getElementById('th-post-comments').value)||0;
+  const shares=+(document.getElementById('th-post-shares').value)||0;
+  const msg=document.getElementById('th-post-msg');
+  if(!content_){showMsg(msg,'⚠ 請填寫發文內容','var(--amber)');return}
+
+  // Check profile exists
+  const profile=await fbGet(thProfilePath(s.uid));
+  if(!profile||!profile.route){showMsg(msg,'⚠ 請先設定帳號定位','var(--amber)');return}
+
+  const today=todayStr();
+  const post={date:today,topic,content:content_,likes,comments,shares,route:profile.route,uid:s.uid,ts:Date.now()};
+  await fbSet(thPostPath(s.uid,today),post);
+
+  document.getElementById('th-post-content').value='';
+  document.getElementById('th-post-likes').value=0;
+  document.getElementById('th-post-comments').value=0;
+  document.getElementById('th-post-shares').value=0;
+  showMsg(msg,'✅ 發文記錄已儲存','var(--green)');
+  await renderTHHistory(s.uid);
+  await checkTHAlerts(s.uid);
+}
+
+async function renderTHHistory(uid){
+  const el=document.getElementById('th-history');
+  if(!el) return;
+  const data=await fbGet('th_posts/'+uid);
+  if(!data){el.innerHTML='<div style="color:var(--dim);font-size:13px;padding:12px">尚無發文記錄</div>';return}
+  const posts=Object.values(data).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,14);
+  const routeLabels={activity:'🎪 活動',work:'💼 工作',finance:'💰 理財',life:'🌿 生活',custom:'✏️ 自訂'};
+  el.innerHTML=posts.map(p=>'<div style="background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:11px 14px">'
+    +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">'
+    +'<span style="font-size:12px;font-weight:600;color:var(--purple);font-family:var(--mono)">'+escHtml(p.date)+'</span>'
+    +(p.topic?'<span style="font-size:11px;background:rgba(167,139,250,.1);border-radius:4px;padding:1px 8px;color:var(--purple)">'+escHtml(p.topic)+'</span>':'')
+    +(p.route?'<span style="font-size:10px;color:var(--muted)">'+escHtml(routeLabels[p.route]||p.route)+'</span>':'')
+    +'<div style="margin-left:auto;display:flex;gap:10px;font-size:11px">'
+    +'<span>👍 '+( p.likes||0)+'</span>'
+    +'<span>💬 '+(p.comments||0)+'</span>'
+    +'<span>🔁 '+(p.shares||0)+'</span>'
+    +'</div>'
+    +'</div>'
+    +(p.content?'<div style="font-size:12px;color:var(--text)">'+escHtml(p.content)+'</div>':'')
+    +'</div>').join('');
+}
+
+async function checkTHAlerts(uid){
+  const alertEl=document.getElementById('grp-alerts');
+  if(!alertEl) return;
+  const warns=[];
+
+  const profile=await fbGet(thProfilePath(uid));
+  if(!profile||!profile.route){
+    warns.push({level:'amber',msg:'尚未設定 Threads 帳號定位！請先在上方選擇路線並儲存。'});
+  } else {
+    const today=todayStr();
+    const todayPost=await fbGet(thPostPath(uid,today));
+    if(!todayPost){
+      warns.push({level:'red',msg:'今日尚未在 Threads 發文！每天至少要有一篇符合路線的發文。'});
+    }
+    // Check recent 3 days
+    let missDays=0;
+    for(let i=1;i<=3;i++){
+      const d=new Date(); d.setDate(d.getDate()-i);
+      const ds=d.toISOString().slice(0,10);
+      const p=await fbGet(thPostPath(uid,ds));
+      if(!p) missDays++;
+    }
+    if(missDays>=2) warns.push({level:'amber',msg:'最近 3 天有 '+missDays+' 天沒有發 Threads 文！帳號活躍度會下降，影響演算法推送。'});
+  }
+
+  alertEl.innerHTML=warns.map(w=>'<div style="background:'+(w.level==='red'?'rgba(244,96,96,.1)':'rgba(244,185,66,.08)')+';border:1px solid '+(w.level==='red'?'var(--red)':'var(--amber)')+';border-radius:9px;padding:10px 14px;margin-bottom:7px">'
+    +'<div style="font-size:12px;font-weight:700;color:'+(w.level==='red'?'var(--red)':'var(--amber)')+'">'+(w.level==='red'?'🚨':'⚠️')+' '+escHtml(w.msg)+'</div>'
+    +'</div>').join('');
 }
 
 document.getElementById('li-pw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
