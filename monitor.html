@@ -229,6 +229,7 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
   <div style="background:var(--bg2);border-bottom:1px solid var(--line);display:flex;gap:0;overflow-x:auto">
     <button id="rtab-data" onclick="switchRTab('data')" style="padding:10px 20px;font-size:13px;font-weight:600;color:var(--accent);border:none;border-bottom:2px solid var(--accent);background:transparent;cursor:pointer;transition:all .2s;white-space:nowrap">📊 數據填報</button>
     <button id="rtab-device" onclick="switchRTab('device')" style="padding:10px 20px;font-size:13px;font-weight:500;color:var(--muted);border:none;border-bottom:2px solid transparent;background:transparent;cursor:pointer;transition:all .2s;white-space:nowrap">📱 設備回報</button>
+    <button id="rtab-group" onclick="switchRTab('group')" style="padding:10px 20px;font-size:13px;font-weight:500;color:var(--muted);border:none;border-bottom:2px solid transparent;background:transparent;cursor:pointer;transition:all .2s;white-space:nowrap">🌱 社團管理</button>
     <button id="rtab-client" onclick="switchRTab('client')" style="padding:10px 20px;font-size:13px;font-weight:500;color:var(--muted);border:none;border-bottom:2px solid transparent;background:transparent;cursor:pointer;transition:all .2s;white-space:nowrap">👥 客戶追蹤</button>
   </div>
 
@@ -380,6 +381,72 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
 
     <!-- 帳號診斷警示 -->
     <div id="dev-alerts" style="margin-top:4px"></div>
+  </div>
+
+  <!-- GROUP MANAGEMENT TAB -->
+  <div id="rview-group" style="display:none;flex:1;padding:20px;max-width:760px;margin:0 auto;width:100%;padding-bottom:40px;flex-direction:column">
+
+    <!-- Platform tabs -->
+    <div style="display:flex;gap:6px;margin-bottom:18px">
+      <button id="grp-tab-fb" onclick="switchGrpPlatform('fb')" style="padding:7px 18px;font-size:13px;font-weight:700;color:#fff;background:var(--accent);border:none;border-radius:8px;cursor:pointer">📘 臉書社團</button>
+      <button id="grp-tab-th" onclick="switchGrpPlatform('th')" style="padding:7px 18px;font-size:13px;font-weight:500;color:var(--muted);background:var(--bg3);border:1px solid var(--line2);border-radius:8px;cursor:pointer">🧵 Threads 社團</button>
+    </div>
+
+    <!-- Alerts -->
+    <div id="grp-alerts" style="margin-bottom:14px"></div>
+
+    <!-- Step 1: Join Group -->
+    <div class="fcard" style="margin-bottom:12px">
+      <div class="fslabel">第一步 ➕ 加入社團</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px">記錄今天加入的新社團網址，系統會追蹤加入日期</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+        <div class="ffield" style="flex:1;min-width:200px"><label>社團網址</label><input type="text" id="grp-join-url" placeholder="https://www.facebook.com/groups/xxxxx" style="font-size:13px;text-align:left;font-family:var(--mono)"></div>
+        <div class="ffield" style="min-width:130px"><label>社團名稱（選填）</label><input type="text" id="grp-join-name" placeholder="社團名稱" style="font-size:13px;text-align:left"></div>
+        <button class="btn-sub" onclick="joinGroup()" style="flex:none;padding:9px 18px;font-size:13px;margin-bottom:0">加入記錄</button>
+      </div>
+      <span id="grp-join-msg" style="font-size:12px;display:none;margin-top:8px"></span>
+    </div>
+
+    <!-- Step 2: Nurture -->
+    <div class="fcard" style="margin-bottom:12px">
+      <div class="fslabel">第二步 🌱 今日養社團記錄</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px">每天至少記錄一次，養滿 3 天且有互動才可以發文。沒有記錄會跳出警示。</div>
+      <div style="margin-bottom:10px">
+        <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:5px">選擇社團</label>
+        <select id="grp-nurture-sel" style="width:100%;background:#0a0f2a;border:1px solid var(--accent);color:#fff;border-radius:8px;padding:8px 12px;outline:none;font-size:13px">
+          <option value="">載入中…</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div class="ffield"><label>今天發了什麼文/留言內容</label><textarea id="grp-nurture-content" rows="2" placeholder="例：分享了一篇理財文章，留言問大家有沒有副業" style="width:100%;background:#0a0f2a;border:1px solid var(--accent);color:#fff;border-radius:8px;padding:8px 12px;outline:none;font-size:13px;resize:vertical"></textarea></div>
+        <div>
+          <div class="ffield" style="margin-bottom:8px"><label>底下幾人按讚</label><input type="number" id="grp-nurture-likes" min="0" value="0" style="font-size:16px;text-align:center"></div>
+          <div class="ffield"><label>底下幾人留言回應</label><input type="number" id="grp-nurture-comments" min="0" value="0" style="font-size:16px;text-align:center"></div>
+        </div>
+      </div>
+      <button class="btn-sub" onclick="submitNurture()" style="width:100%;padding:11px;font-size:14px">✓ 提交今日養社團記錄</button>
+      <span id="grp-nurture-msg" style="font-size:12px;display:none;margin-top:8px"></span>
+    </div>
+
+    <!-- Step 3: Post -->
+    <div class="fcard" style="margin-bottom:12px">
+      <div class="fslabel">第三步 📢 發文記錄</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px">只能選已養 3 天以上且有互動的社團發文</div>
+      <div style="margin-bottom:10px">
+        <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:5px">選擇要發文的社團（只顯示已養 3 天以上）</label>
+        <select id="grp-post-sel" style="width:100%;background:#0a0f2a;border:1px solid var(--accent);color:#fff;border-radius:8px;padding:8px 12px;outline:none;font-size:13px">
+          <option value="">載入中…</option>
+        </select>
+      </div>
+      <div id="grp-post-warning" style="display:none;background:rgba(244,96,96,.1);border:1px solid var(--red);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:12px;color:var(--red)"></div>
+      <div class="ffield" style="margin-bottom:10px"><label>發文內容摘要</label><textarea id="grp-post-content" rows="2" placeholder="發了什麼內容？" style="width:100%;background:#0a0f2a;border:1px solid var(--accent);color:#fff;border-radius:8px;padding:8px 12px;outline:none;font-size:13px;resize:vertical"></textarea></div>
+      <button class="btn-sub" onclick="submitPost()" style="width:100%;padding:11px;font-size:14px">✓ 記錄今日發文</button>
+      <span id="grp-post-msg" style="font-size:12px;display:none;margin-top:8px"></span>
+    </div>
+
+    <!-- My Groups List -->
+    <div class="fslabel" style="margin-bottom:10px">我的社團列表</div>
+    <div id="grp-list" style="display:flex;flex-direction:column;gap:8px"></div>
   </div>
 
   <!-- CLIENT TRACKING TAB -->
@@ -546,6 +613,7 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
       <div class="aside-item" onclick="aTab('cl',this)"><span class="d" style="background:var(--cyan)"></span>客戶總覽</div>
       <div class="aside-item" onclick="aTab('ver',this)"><span class="d" style="background:var(--amber)"></span>版別管理</div>
       <div class="aside-item" onclick="aTab('dev',this)"><span class="d" style="background:var(--red)"></span>設備總覽</div>
+      <div class="aside-item" onclick="aTab('grp',this)"><span class="d" style="background:var(--green)"></span>社團總覽</div>
       <div class="aside-item" onclick="aTab('cfg',this)"><span class="d" style="background:var(--amber)"></span>系統設定</div>
     </div>
     <div class="acontent">
@@ -714,6 +782,25 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
       <button class="btn-cancel" onclick="closeRecordEdit()">取消</button>
       <button class="btn-save" onclick="saveRecordEdit()">✓ 儲存修改</button>
       <button onclick="deleteRecord()" style="background:transparent;border:1px solid var(--red);color:var(--red);border-radius:8px;padding:10px 16px;cursor:pointer;font-size:13px;margin-left:auto">🗑 刪除此筆</button>
+      <!-- 社團總覽 -->
+      <div id="tab-grp" style="display:none">
+        <div class="fbar">
+          <select id="grp-admin-platform" onchange="renderGrpAdmin()">
+            <option value="fb">📘 臉書社團</option>
+            <option value="th">🧵 Threads 社團</option>
+          </select>
+          <select id="grp-admin-user" onchange="renderGrpAdmin()"><option value="">全部人員</option></select>
+          <select id="grp-admin-status" onchange="renderGrpAdmin()">
+            <option value="">全部狀態</option>
+            <option value="ok">✅ 可發文</option>
+            <option value="nurturing">🌱 養社團中</option>
+            <option value="warn">⚠️ 有警示</option>
+          </select>
+          <button class="btn-sm" onclick="exportGrpExcel()" style="color:var(--green);border-color:var(--green)">⬇ 匯出Excel</button>
+        </div>
+        <div id="grp-admin-alerts" style="margin-bottom:16px"></div>
+        <div id="grp-admin-content"><div class="empty">選擇條件後顯示</div></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1230,7 +1317,7 @@ async function initAdmin(){
 
 async function refreshUserSelects(){
   const users=await getUsers();
-  ['ov-user','dt-user','ss-user','cl-staff','dev-admin-user'].forEach(id=>{
+  ['ov-user','dt-user','ss-user','cl-staff','dev-admin-user','grp-admin-user'].forEach(id=>{
     const sel=document.getElementById(id),cur=sel.value;
     sel.innerHTML='<option value="">全部人員</option>';
     users.forEach(u=>{const o=document.createElement('option');o.value=u.id;o.textContent=`${u.name} (${u.id})`;sel.appendChild(o)});
@@ -1818,7 +1905,7 @@ window.exportData = async function(){
 
 window.aTab = function(name,el){
   document.querySelectorAll('.aside-item').forEach(i=>i.classList.remove('on'));el.classList.add('on');
-  ['ov','dt','ss','us','cfg','cl','ver','dev'].forEach(t=>document.getElementById('tab-'+t).style.display=t===name?'block':'none');
+  ['ov','dt','ss','us','cfg','cl','ver','dev','grp'].forEach(t=>document.getElementById('tab-'+t).style.display=t===name?'block':'none');
   if(name==='ov')renderOv();
   if(name==='dt')renderDt();
   if(name==='ss')renderSS();
@@ -1826,6 +1913,7 @@ window.aTab = function(name,el){
   if(name==='cl')renderClientAdmin();
   if(name==='ver')renderVersionList();
   if(name==='dev')renderDeviceAdmin();
+  if(name==='grp')renderGrpAdmin();
 }
 
 // ══════════════════════════════════════
@@ -2212,8 +2300,9 @@ window.switchRTab = function(tab){
   const s=getSession();
   document.getElementById('rview-data').style.display=tab==='data'?'flex':'none';
   document.getElementById('rview-device').style.display=tab==='device'?'flex':'none';
+  document.getElementById('rview-group').style.display=tab==='group'?'flex':'none';
   document.getElementById('rview-client').style.display=tab==='client'?'block':'none';
-  ['data','device','client'].forEach(t=>{
+  ['data','device','group','client'].forEach(t=>{
     const btn=document.getElementById('rtab-'+t);
     if(!btn) return;
     if(t===tab){
@@ -2227,6 +2316,7 @@ window.switchRTab = function(tab){
     }
   });
   if(tab==='device' && s) initDeviceTab(s.uid);
+  if(tab==='group' && s) initGroupTab(s.uid);
   if(tab==='client' && s) initClientTab(s.uid);
 }
 
@@ -3078,6 +3168,379 @@ window.exportGroupUrls = async function(){
     alert('匯出失敗：'+e.message);
   }
   if(btn){btn.disabled=false;btn.textContent='⬇ 匯出Excel';}
+}
+
+// ══════════════════════════════════════
+// GROUP MANAGEMENT SYSTEM
+// ══════════════════════════════════════
+let CUR_GRP_PLATFORM = 'fb';
+
+// Firebase paths
+function grpBase(uid,platform){ return 'groups/'+platform+'/'+uid; }
+function grpPath(uid,platform,gid){ return grpBase(uid,platform)+'/'+gid; }
+function nurturePath(uid,platform,gid,date){ return 'nurture/'+platform+'/'+uid+'/'+gid+'/'+date.replace(/-/g,'_'); }
+function postPath(uid,platform,gid,date){ return 'posts/'+platform+'/'+uid+'/'+gid+'/'+date.replace(/-/g,'_'); }
+
+function genGid(url){ return url.replace(/[^a-zA-Z0-9]/g,'_').slice(-30)+'_'+Date.now().toString(36); }
+
+async function getMyGroups(uid,platform){
+  const d=await fbGet(grpBase(uid,platform));
+  return d?Object.values(d):[];
+}
+
+async function getNurtureLogs(uid,platform,gid){
+  const d=await fbGet('nurture/'+platform+'/'+uid+'/'+gid);
+  return d?Object.values(d):[];
+}
+
+async function getPostLogs(uid,platform,gid){
+  const d=await fbGet('posts/'+platform+'/'+uid+'/'+gid);
+  return d?Object.values(d):[];
+}
+
+function calcNurtureDays(logs){
+  // Count unique dates
+  const dates=new Set(logs.map(l=>l.date));
+  return dates.size;
+}
+
+function hasInteraction(logs){
+  return logs.some(l=>(l.likes||0)+(l.comments||0)>0);
+}
+
+function canPost(nurtureLogs){
+  return calcNurtureDays(nurtureLogs)>=3 && hasInteraction(nurtureLogs);
+}
+
+// ── SWITCH PLATFORM ──
+window.switchGrpPlatform = async function(platform){
+  CUR_GRP_PLATFORM=platform;
+  ['fb','th'].forEach(p=>{
+    const btn=document.getElementById('grp-tab-'+p);
+    if(!btn) return;
+    if(p===platform){
+      btn.style.background='var(--accent)';btn.style.color='#fff';
+      btn.style.border='none';btn.style.fontWeight='700';
+    } else {
+      btn.style.background='var(--bg3)';btn.style.color='var(--muted)';
+      btn.style.border='1px solid var(--line2)';btn.style.fontWeight='500';
+    }
+  });
+  const s=getSession(); if(s) await initGroupTab(s.uid);
+}
+
+// ── INIT GROUP TAB ──
+async function initGroupTab(uid){
+  await loadGroupSelects(uid,CUR_GRP_PLATFORM);
+  await renderGroupList(uid,CUR_GRP_PLATFORM);
+  await checkGroupAlerts(uid,CUR_GRP_PLATFORM);
+}
+
+async function loadGroupSelects(uid,platform){
+  const groups=await getMyGroups(uid,platform);
+  const today=todayStr();
+
+  // Nurture select - all groups
+  const nSel=document.getElementById('grp-nurture-sel');
+  if(nSel){
+    nSel.innerHTML=groups.length
+      ?groups.map(g=>'<option value="'+escAttr(g.gid)+'">'+escHtml(g.name||g.url.slice(-30))+'</option>').join('')
+      :'<option value="">尚無社團，請先加入</option>';
+  }
+
+  // Post select - only groups with 3+ nurture days AND interaction
+  const pSel=document.getElementById('grp-post-sel');
+  if(pSel){
+    const ready=[];
+    for(const g of groups){
+      const logs=await getNurtureLogs(uid,platform,g.gid);
+      if(canPost(logs)) ready.push(g);
+    }
+    pSel.innerHTML=ready.length
+      ?ready.map(g=>'<option value="'+escAttr(g.gid)+'">'+escHtml(g.name||g.url.slice(-30))+'</option>').join('')
+      :'<option value="">尚無可發文社團（需養 3 天以上且有互動）</option>';
+  }
+}
+
+// ── JOIN GROUP ──
+window.joinGroup = async function(){
+  const s=getSession(); if(!s) return;
+  const url=document.getElementById('grp-join-url').value.trim();
+  const name=document.getElementById('grp-join-name').value.trim();
+  const msg=document.getElementById('grp-join-msg');
+  if(!url){showMsg(msg,'⚠ 請輸入社團網址','var(--amber)');return}
+
+  const gid=genGid(url);
+  const group={gid,url,name:name||'',platform:CUR_GRP_PLATFORM,joinDate:todayStr(),uid:s.uid,ts:Date.now()};
+  await fbSet(grpPath(s.uid,CUR_GRP_PLATFORM,gid),group);
+  document.getElementById('grp-join-url').value='';
+  document.getElementById('grp-join-name').value='';
+  showMsg(msg,'✅ 已記錄加入社團','var(--green)');
+  await initGroupTab(s.uid);
+}
+
+// ── NURTURE ──
+window.submitNurture = async function(){
+  const s=getSession(); if(!s) return;
+  const gid=document.getElementById('grp-nurture-sel').value;
+  const content_=document.getElementById('grp-nurture-content').value.trim();
+  const likes=+(document.getElementById('grp-nurture-likes').value)||0;
+  const comments=+(document.getElementById('grp-nurture-comments').value)||0;
+  const msg=document.getElementById('grp-nurture-msg');
+  if(!gid){showMsg(msg,'⚠ 請選擇社團','var(--amber)');return}
+  if(!content_){showMsg(msg,'⚠ 請填寫今天發了什麼內容','var(--amber)');return}
+
+  const today=todayStr();
+  const log={date:today,content:content_,likes,comments,uid:s.uid,gid,platform:CUR_GRP_PLATFORM,ts:Date.now()};
+  await fbSet(nurturePath(s.uid,CUR_GRP_PLATFORM,gid,today),log);
+
+  document.getElementById('grp-nurture-content').value='';
+  document.getElementById('grp-nurture-likes').value=0;
+  document.getElementById('grp-nurture-comments').value=0;
+  showMsg(msg,'✅ 養社團記錄已儲存','var(--green)');
+  await initGroupTab(s.uid);
+}
+
+// ── POST ──
+window.submitPost = async function(){
+  const s=getSession(); if(!s) return;
+  const gid=document.getElementById('grp-post-sel').value;
+  const content_=document.getElementById('grp-post-content').value.trim();
+  const msg=document.getElementById('grp-post-msg');
+  const warnEl=document.getElementById('grp-post-warning');
+  if(!gid){showMsg(msg,'⚠ 請選擇社團','var(--amber)');return}
+  if(!content_){showMsg(msg,'⚠ 請填寫發文內容','var(--amber)');return}
+
+  // Verify can post
+  const logs=await getNurtureLogs(s.uid,CUR_GRP_PLATFORM,gid);
+  if(!canPost(logs)){
+    warnEl.style.display='block';
+    warnEl.textContent='🚨 此社團尚未達到可發文條件！需養滿 3 天且有人互動才能發文。';
+    return;
+  }
+  warnEl.style.display='none';
+
+  const today=todayStr();
+  const post={date:today,content:content_,uid:s.uid,gid,platform:CUR_GRP_PLATFORM,ts:Date.now()};
+  await fbSet(postPath(s.uid,CUR_GRP_PLATFORM,gid,today),post);
+  document.getElementById('grp-post-content').value='';
+  showMsg(msg,'✅ 發文記錄已儲存','var(--green)');
+  await initGroupTab(s.uid);
+}
+
+// ── GROUP ALERTS (front) ──
+async function checkGroupAlerts(uid,platform){
+  const el=document.getElementById('grp-alerts');
+  if(!el) return;
+  const groups=await getMyGroups(uid,platform);
+  const today=todayStr();
+  const warns=[];
+
+  for(const g of groups){
+    if(g.status==='inactive') continue;
+    const nurtureLogs=await getNurtureLogs(uid,platform,g.gid);
+    const todayNurture=nurtureLogs.find(l=>l.date===today);
+    const days=calcNurtureDays(nurtureLogs);
+    const hasInteract=hasInteraction(nurtureLogs);
+    const gname=escHtml(g.name||g.url.slice(-25));
+
+    // No nurture today
+    if(!todayNurture)
+      warns.push({level:'red',title:'今日尚未養社團',msg:'【'+gname+'】今天還沒有養社團記錄，每天至少要有一篇互動！'});
+
+    // Has posts but no nurture recently (last 3 days)
+    const recentDates=nurtureLogs.map(l=>l.date).sort().slice(-3);
+    const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
+    const yStr=yesterday.toISOString().slice(0,10);
+    if(days>0&&!recentDates.includes(today)&&!recentDates.includes(yStr)&&days<3)
+      warns.push({level:'amber',title:'養社團天數不足',msg:'【'+gname+'】目前只養了 '+days+' 天，需養滿 3 天且有互動才能發文。'});
+
+    // Has 0 interaction
+    if(days>0&&!hasInteract)
+      warns.push({level:'amber',title:'尚無互動紀錄',msg:'【'+gname+'】養社團紀錄中按讚和留言都是 0，請確認有沒有真實互動。'});
+  }
+
+  if(!warns.length){el.innerHTML='';return}
+  el.innerHTML=warns.map(w=>{
+    const isRed=w.level==='red';
+    const bg=isRed?'rgba(244,96,96,.1)':'rgba(244,185,66,.08)';
+    const border=isRed?'var(--red)':'var(--amber)';
+    return '<div style="background:'+bg+';border:1px solid '+border+';border-radius:9px;padding:10px 14px;margin-bottom:7px">'
+      +'<div style="font-size:12px;font-weight:700;color:'+border+';margin-bottom:3px">'+(isRed?'🚨':'⚠️')+' '+escHtml(w.title)+'</div>'
+      +'<div style="font-size:12px;color:var(--text)">'+escHtml(w.msg)+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+// ── RENDER GROUP LIST ──
+async function renderGroupList(uid,platform){
+  const el=document.getElementById('grp-list');
+  if(!el) return;
+  const groups=await getMyGroups(uid,platform);
+  if(!groups.length){el.innerHTML='<div style="color:var(--dim);font-size:13px;padding:12px">尚無社團記錄，請先在第一步加入社團</div>';return}
+
+  const today=todayStr();
+  let html='';
+  for(const g of groups){
+    const nurtureLogs=await getNurtureLogs(uid,platform,g.gid);
+    const postLogs=await getPostLogs(uid,platform,g.gid);
+    const days=calcNurtureDays(nurtureLogs);
+    const hasInteract=hasInteraction(nurtureLogs);
+    const canPostNow=canPost(nurtureLogs);
+    const todayNurture=nurtureLogs.find(l=>l.date===today);
+    const todayPost=postLogs.find(l=>l.date===today);
+
+    const statusColor=canPostNow?'var(--green)':days>=1?'var(--amber)':'var(--muted)';
+    const statusLabel=canPostNow?'✅ 可發文':'🌱 養社團中（'+days+'/3 天）';
+
+    html+='<div style="background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:8px">'
+      +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px">'
+      +'<div style="flex:1">'
+      +'<div style="font-size:13px;font-weight:600;margin-bottom:2px">'+escHtml(g.name||'（未命名）')+'</div>'
+      +'<div style="font-size:11px;color:var(--muted);font-family:var(--mono);word-break:break-all">'+escHtml(g.url)+'</div>'
+      +'<div style="font-size:11px;color:var(--muted);margin-top:3px">加入日期：'+escHtml(g.joinDate)+'</div>'
+      +'</div>'
+      +'<span style="font-size:12px;color:'+statusColor+';font-weight:600;white-space:nowrap">'+statusLabel+'</span>'
+      +'</div>'
+      // Stats row
+      +'<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;margin-bottom:6px">'
+      +'<span style="color:var(--muted)">已養 <span style="color:var(--text);font-weight:600">'+days+'</span> 天</span>'
+      +'<span style="color:var(--muted)">總互動 <span style="color:'+(hasInteract?'var(--green)':'var(--red)')+'">'+nurtureLogs.reduce((s,l)=>s+(l.likes||0)+(l.comments||0),0)+'</span> 次</span>'
+      +'<span style="color:var(--muted)">累計發文 <span style="color:var(--accent)">'+postLogs.length+'</span> 次</span>'
+      +'</div>'
+      // Today status
+      +'<div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11px">'
+      +(todayNurture
+        ?'<span style="background:rgba(61,214,140,.1);border:1px solid rgba(61,214,140,.25);border-radius:4px;padding:2px 8px;color:var(--green)">今日已養 👍'+todayNurture.likes+' 💬'+todayNurture.comments+'</span>'
+        :'<span style="background:rgba(244,96,96,.1);border:1px solid rgba(244,96,96,.25);border-radius:4px;padding:2px 8px;color:var(--red)">今日未養</span>')
+      +(todayPost
+        ?'<span style="background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.25);border-radius:4px;padding:2px 8px;color:var(--accent)">今日已發文</span>'
+        :'')
+      +'</div>'
+      +'</div>';
+  }
+  el.innerHTML=html;
+}
+
+// ── ADMIN GROUP VIEW ──
+window.renderGrpAdmin = async function(){
+  const platform=document.getElementById('grp-admin-platform').value||'fb';
+  const uid=document.getElementById('grp-admin-user').value;
+  const statusFilter=document.getElementById('grp-admin-status').value;
+  const el=document.getElementById('grp-admin-content');
+  const alertEl=document.getElementById('grp-admin-alerts');
+  el.innerHTML='<div class="empty">載入中…</div>';
+
+  const users=await getUsers();
+  const userMap={};users.forEach(u=>userMap[u.id]=u.name);
+  const targetUsers=uid?users.filter(u=>u.id===uid):users;
+  const today=todayStr();
+
+  // Collect all groups across all users
+  let allRows=[];
+  const allWarns=[];
+
+  for(const u of targetUsers){
+    const groups=await getMyGroups(u.id,platform);
+    for(const g of groups){
+      const nurtureLogs=await getNurtureLogs(u.id,platform,g.gid);
+      const postLogs=await getPostLogs(u.id,platform,g.gid);
+      const days=calcNurtureDays(nurtureLogs);
+      const hasInteract=hasInteraction(nurtureLogs);
+      const canPostNow=canPost(nurtureLogs);
+      const todayNurture=nurtureLogs.find(l=>l.date===today);
+
+      const status=canPostNow?'ok':days>=1?'nurturing':'new';
+      if(statusFilter&&status!==statusFilter&&!(statusFilter==='warn'&&(!todayNurture&&days>0))) continue;
+
+      // Check warnings
+      if(!todayNurture&&days>0)
+        allWarns.push({level:'red',name:userMap[u.id]||u.id,grp:g.name||g.url.slice(-25),msg:'今日尚未養社團'});
+      if(days>0&&!hasInteract)
+        allWarns.push({level:'amber',name:userMap[u.id]||u.id,grp:g.name||g.url.slice(-25),msg:'養社團無互動紀錄'});
+
+      allRows.push({u,g,days,hasInteract,canPostNow,todayNurture,postLogs,nurtureLogs,status});
+    }
+  }
+
+  // Render alerts
+  if(alertEl){
+    if(!allWarns.length){alertEl.innerHTML='';}
+    else{
+      alertEl.innerHTML='<div style="background:rgba(244,96,96,.07);border:1px solid rgba(244,96,96,.25);border-radius:10px;padding:12px 14px;margin-bottom:4px">'
+        +'<div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:8px">🚨 社團管理警示（共 '+allWarns.length+' 筆）</div>'
+        +allWarns.map(w=>'<div style="font-size:12px;padding:3px 0;color:var(--text)">'
+          +(w.level==='red'?'🚨':'⚠️')
+          +' <span style="font-weight:600">'+escHtml(w.name)+'</span>'
+          +' — '+escHtml(w.grp)+' — '+escHtml(w.msg)+'</div>').join('')
+        +'</div>';
+    }
+  }
+
+  if(!allRows.length){el.innerHTML='<div class="empty">此條件無社團資料</div>';return}
+
+  el.innerHTML=allRows.map(({u,g,days,hasInteract,canPostNow,todayNurture,postLogs,nurtureLogs})=>{
+    const statusColor=canPostNow?'var(--green)':days>=1?'var(--amber)':'var(--muted)';
+    const statusLabel=canPostNow?'✅ 可發文':'🌱 養中('+days+'/3天)';
+    const totalInteract=nurtureLogs.reduce((s,l)=>s+(l.likes||0)+(l.comments||0),0);
+    return '<div style="background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:8px">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">'
+      +'<div>'
+      +'<span style="font-weight:600">'+escHtml(userMap[u.id]||u.id)+'</span>'
+      +'<span style="font-size:11px;color:var(--muted);margin-left:8px">'+escHtml(g.name||g.url.slice(-30))+'</span>'
+      +'</div>'
+      +'<span style="font-size:12px;color:'+statusColor+';font-weight:600">'+statusLabel+'</span>'
+      +'</div>'
+      +'<div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-family:var(--mono);word-break:break-all">'+escHtml(g.url)+'</div>'
+      +'<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px">'
+      +'<span>加入：<span style="color:var(--text)">'+escHtml(g.joinDate)+'</span></span>'
+      +'<span>已養：<span style="color:var(--text);font-weight:600">'+days+'</span>天</span>'
+      +'<span>總互動：<span style="color:'+(hasInteract?'var(--green)':'var(--red)')+'">'+totalInteract+'</span></span>'
+      +'<span>累計發文：<span style="color:var(--accent)">'+postLogs.length+'</span></span>'
+      +(todayNurture
+        ?'<span style="color:var(--green)">今日已養 👍'+todayNurture.likes+' 💬'+todayNurture.comments+'</span>'
+        :(days>0?'<span style="color:var(--red);font-weight:600">⚠ 今日未養</span>':''))
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+
+window.exportGrpExcel = async function(){
+  const platform=document.getElementById('grp-admin-platform').value||'fb';
+  const users=await getUsers();
+  const userMap={};users.forEach(u=>userMap[u.id]=u.name);
+  const rows=[['人員','人員編號','社團名稱','社團網址','加入日期','已養天數','是否可發文','總互動次數','累計發文','今日是否養社團']];
+  for(const u of users){
+    const groups=await getMyGroups(u.id,platform);
+    for(const g of groups){
+      const nurtureLogs=await getNurtureLogs(u.id,platform,g.gid);
+      const postLogs=await getPostLogs(u.id,platform,g.gid);
+      const days=calcNurtureDays(nurtureLogs);
+      const today=todayStr();
+      rows.push([userMap[u.id]||u.id,u.id,g.name||'',g.url,g.joinDate,days,canPost(nurtureLogs)?'是':'否',
+        nurtureLogs.reduce((s,l)=>s+(l.likes||0)+(l.comments||0),0),postLogs.length,
+        nurtureLogs.find(l=>l.date===today)?'是':'否']);
+    }
+  }
+  const csvRows=rows.map(r=>r.map(c=>{const s=String(c||'').replace(/"/g,'""');return s.indexOf(',')>=0||s.indexOf('"')>=0?'"'+s+'"':s;}).join(','));
+  const csv='﻿'+csvRows.join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download='社團管理_'+todayStr()+'.csv';a.click();
+}
+
+// ── REFRESH USER SELECTS for grp-admin-user ──
+const _origRefreshUserSelects=refreshUserSelects;
+async function refreshUserSelectsWithGrp(){
+  await _origRefreshUserSelects();
+  const users=await getUsers();
+  const sel=document.getElementById('grp-admin-user');
+  if(sel){
+    const cur=sel.value;
+    sel.innerHTML='<option value="">全部人員</option>';
+    users.forEach(u=>{const o=document.createElement('option');o.value=u.id;o.textContent=u.name+' ('+u.id+')';sel.appendChild(o);});
+    sel.value=cur;
+  }
 }
 
 document.getElementById('li-pw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
