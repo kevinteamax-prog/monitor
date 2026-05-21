@@ -1211,7 +1211,12 @@ ${diff ? `【本時段新增變化（與上一時段相比）】
 2. 用 ⚠️ 標示警告、✅ 標示正常、💡 標示建議
 3. 分析要具體，說明可能的原因
 4. 最後給1-2個下一時段的改善建議
-5. 回覆要簡潔，不超過200字，不要用markdown標題符號(#)`;
+5. 回覆要簡潔，不超過200字，不要用markdown標題符號(#)
+
+【系統自動診斷】
+${(()=>{const w=diagnoseSingleRecord(data,prevData);return w.length?w.map(x=>(x.level==='red'?'🚨':'⚠️')+x.title+'：'+x.msg).join('\n'):'✅ 無異常';})()}
+
+請根據以上系統診斷，補充更深入的根本原因分析和立即可執行的改善方案。不要重複系統診斷已說的內容。`;
 
   try{
     const res = await fetch('https://api.anthropic.com/v1/messages',{
@@ -2871,82 +2876,60 @@ window.exportClientExcel = async function(){
 }
 
 // ══════════════════════════════════════
-// DATA DIAGNOSIS (即時警示)
+// DATA DIAGNOSIS (即時警示) - 前後台共用
 // ══════════════════════════════════════
 function runDataDiagnosis(data, prev){
-  const warns=[];
-  const fbPosts=data.fbPost||0;
-  const fbGroups=data.fbGroup||0;
-  const threads=data.threads||0;
-  const line=data.line||0;
-  const invalid=data.invalid||0;
-  const under=data.under||0;
-  const reject=data.reject||0;
-  const guide=data.guide||0;
-  const open=data.open||0;
-
-  // New this slot (if prev exists)
-  const newLine  = prev ? line-prev.line : line;
-  const newInvalid=prev ? invalid-prev.invalid : invalid;
-  const newGuide = prev ? guide-prev.guide : guide;
-  const newOpen  = prev ? open-prev.open : open;
-
-  // 1. 發文多但沒人詢問
-  const totalPost=fbPosts+fbGroups+threads;
-  if(totalPost>=3 && newLine===0)
-    warns.push({level:'red',title:'發文量高但引流為零',
-      msg:'本時段新增發文 '+totalPost+' 篇，但沒有引流到任何 LINE。可能原因：① 文宣內容無吸引力 ② 發錯社團（死社團全是一線人員）③ 帳號被限流。請立刻更換文宣或社團。'});
-
-  // 2. 無效詢問 > 引流LINE
-  if(newInvalid > newLine && newInvalid > 0)
-    warns.push({level:'red',title:'無效詢問多於引流 LINE',
-      msg:'本時段無效詢問 +'+newInvalid+'，卻只引流 +'+newLine+' 人。代表有人私訊你但不願加 LINE，可能原因：① 回覆太慢客戶冷掉 ② 引流話術太像機器人，防備心起。請加快回覆速度並優化話術。'});
-
-  // 3. 未滿多
-  if(under >= 5)
-    warns.push({level:'amber',title:'未滿比例偏高',
-      msg:'未滿數量達 '+under+'，代表找錯魚池了！可能發到學生打工社團，產值極低。請立刻轉移陣地，尋找有經濟壓力的客群社團。'});
-
-  // 4. 拒絕多
-  if(reject >= 3)
-    warns.push({level:'amber',title:'拒絕率偏高',
-      msg:'拒絕數量達 '+reject+'。代表 A→B 工作轉換話術太生硬，或前期信任未建立好。需重新檢視切入話術，避免太早太唐突地提 B 工作。'});
-
-  // 5. 引導二線多但開戶少
-  if(newGuide >= 2 && newOpen === 0)
-    warns.push({level:'amber',title:'引導二線多但無成功開戶',
-      msg:'本時段新增引導二線 +'+newGuide+'，但成功開戶 +0。可能原因：① 沒給客戶「必須加助理的強烈理由」② 情報交接不完整，二線接不住。請確認交接情報是否包含痛點、資金、信任度。'});
-
-  // 6. 沒有引流
-  if(totalPost > 0 && line === 0 && fbPosts+fbGroups+threads > 5)
-    warns.push({level:'red',title:'大量發文但累計引流為零',
-      msg:'今日累計發文已達 '+(fbPosts+fbGroups+threads)+' 篇，但仍無人引流進 LINE。帳號可能已被平台限流，建議換帳號或暫停發文休息 2 小時。'});
+  // Use the shared diagnoseSingleRecord function
+  const warns = diagnoseSingleRecord(data, prev);
 
   const el=document.getElementById('ai-card');
   const body=document.getElementById('ai-body');
   if(!el||!body) return;
 
-  if(!warns.length) return; // 讓 AI 分析自己處理
+  // Always show the card and diagnosis section
+  el.style.display='block';
 
-  // Show diagnosis warnings above AI section
+  if(!warns.length){
+    // No problems - show green status then let AI run
+    const goodHtml='<div style="margin-bottom:12px">'
+      +'<div style="background:rgba(61,214,140,.08);border:1px solid rgba(61,214,140,.2);border-radius:8px;padding:10px 13px;margin-bottom:10px">'
+      +'<div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:2px">✅ 本時段數據正常</div>'
+      +'<div style="font-size:12px;color:var(--text)">目前數據沒有發現明顯問題，繼續保持！</div>'
+      +'</div>'
+      +'<div style="border-top:1px solid var(--line);margin:10px 0 8px"></div>'
+      +'<div style="font-size:11px;color:var(--purple);font-family:var(--mono);margin-bottom:6px">🤖 AI 深度分析</div>'
+      +'</div>';
+    body.innerHTML=goodHtml+'<div class="ai-loading"><div class="ai-dots"><span></span><span></span><span></span></div>AI 分析中…</div>';
+    el.scrollIntoView({behavior:'smooth',block:'nearest'});
+    return;
+  }
+
+  const redCount=warns.filter(w=>w.level==='red').length;
+  const amberCount=warns.filter(w=>w.level==='amber').length;
+
   const diagHtml='<div style="margin-bottom:12px">'
-    +'<div style="font-size:11px;color:var(--muted);letter-spacing:.08em;font-family:var(--mono);margin-bottom:8px">📋 即時診斷警示</div>'
+    +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">'
+    +'<span style="font-size:13px;font-weight:700;color:var(--red)">📋 本時段診斷結果</span>'
+    +(redCount?'<span style="font-size:11px;background:rgba(244,96,96,.15);border:1px solid rgba(244,96,96,.3);border-radius:4px;padding:1px 8px;color:var(--red)">🚨 嚴重 '+redCount+' 項</span>':'')
+    +(amberCount?'<span style="font-size:11px;background:rgba(244,185,66,.1);border:1px solid rgba(244,185,66,.3);border-radius:4px;padding:1px 8px;color:var(--amber)">⚠️ 注意 '+amberCount+' 項</span>':'')
+    +'</div>'
     +warns.map(w=>{
       const isRed=w.level==='red';
       const bg=isRed?'rgba(244,96,96,.1)':'rgba(244,185,66,.08)';
       const border=isRed?'var(--red)':'var(--amber)';
-      const icon=isRed?'🚨':'⚠️';
       return '<div style="background:'+bg+';border:1px solid '+border+';border-radius:8px;padding:10px 13px;margin-bottom:7px">'
-        +'<div style="font-size:13px;font-weight:700;color:'+border+';margin-bottom:4px">'+icon+' '+escHtml(w.title)+'</div>'
-        +'<div style="font-size:12px;color:var(--text);line-height:1.65">'+escHtml(w.msg)+'</div>'
+        +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
+        +(isRed?'<span style="font-size:14px">🚨</span>':'<span style="font-size:14px">⚠️</span>')
+        +'<span style="font-size:13px;font-weight:700;color:'+border+'">'+escHtml(w.title)+'</span>'
+        +'<span style="font-size:10px;color:var(--muted);font-family:var(--mono)">'+escHtml(w.code)+'</span>'
+        +'</div>'
+        +'<div style="font-size:12px;color:var(--text);line-height:1.7;padding-left:4px">'+escHtml(w.msg)+'</div>'
         +'</div>';
     }).join('')
     +'<div style="border-top:1px solid var(--line);margin:10px 0 8px"></div>'
-    +'<div style="font-size:11px;color:var(--purple);font-family:var(--mono);margin-bottom:6px">🤖 AI 深度分析</div>'
+    +'<div style="font-size:11px;color:var(--purple);font-family:var(--mono);margin-bottom:6px">🤖 AI 深度分析（根據上方診斷給予建議）</div>'
     +'</div>';
 
-  el.style.display='block';
-  // Prepend diagnosis to AI body (AI will fill rest)
   body.innerHTML=diagHtml+'<div class="ai-loading"><div class="ai-dots"><span></span><span></span><span></span></div>AI 分析中…</div>';
   el.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
