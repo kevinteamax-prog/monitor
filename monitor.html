@@ -61,7 +61,7 @@ input,select,button{font-family:var(--font);font-size:14px}
 .btn-sm:hover{border-color:var(--accent);color:var(--accent)}
 .sync-chip{font-size:11px;color:var(--green);font-family:var(--mono);background:rgba(61,214,140,.08);border:1px solid rgba(61,214,140,.2);border-radius:6px;padding:3px 9px}
 
-.rbody{flex:1;padding:20px;max-width:700px;margin:0 auto;width:100%;padding-bottom:40px}
+.rbody{flex:1;padding:20px;max-width:1100px;margin:0 auto;width:100%;padding-bottom:40px}
 .sec-label{font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;font-family:var(--mono)}
 .slot-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
 .stab{background:#151e35;border:1px solid #2a3a6a;color:#8aa4cc;border-radius:8px;padding:7px 16px;cursor:pointer;font-size:13px;font-family:var(--mono);transition:all .2s;position:relative;font-weight:500}
@@ -235,7 +235,7 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
   </div>
 
   <!-- DATA TAB -->
-  <div id="rview-data" class="rbody" style="display:flex;flex-direction:column">
+  <div id="rview-data" class="rbody" style="display:flex;flex-direction:column;max-width:1100px">
     <div class="sec-label" style="margin-bottom:9px">選擇填報時段</div>
     <div class="slot-tabs" id="slot-tabs"></div>
     <div class="done-banner" id="done-banner">✅ 此時段已完成填報，重新提交即可覆蓋</div>
@@ -289,7 +289,7 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
     </div><!-- end form column -->
 
     <!-- 右側診斷面板 -->
-    <div id="diag-panel" style="width:340px;flex-shrink:0;position:sticky;top:70px;display:none">
+    <div id="diag-panel" style="width:320px;flex-shrink:0;position:sticky;top:70px">
       <div style="background:var(--bg2);border:1px solid var(--line);border-radius:14px;overflow:hidden">
         <div style="padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between">
           <div style="display:flex;align-items:center;gap:8px">
@@ -2967,7 +2967,6 @@ function updateDiagPanel(data, prev, warns){
   const panelSlot=document.getElementById('diag-panel-slot');
   if(!panel||!panelBody) return;
 
-  panel.style.display='block';
   if(panelSlot) panelSlot.textContent=CUR_SLOT;
 
   if(!warns||!warns.length){
