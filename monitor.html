@@ -705,6 +705,8 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
         </div>
         <!-- 未填報警示 -->
         <div id="ov-missing" style="margin-bottom:16px"></div>
+        <!-- 數據診斷彙整 -->
+        <div id="ov-diag-summary" style="margin-bottom:4px"></div>
         <div class="sgrid" id="ov-stats"></div>
         <div class="sccard"><div class="sccard-t">轉化漏斗</div><div class="fnl-wrap" id="ov-funnel"></div></div>
         <div class="dtw"><table><thead><tr><th>日期</th><th>時段</th><th>人員</th><th>FB社團</th><th>FB發文</th><th>Threads</th><th>引流LINE</th><th>無效詢問</th><th>未滿</th><th>拒絕</th><th>引導二線</th><th>成功開戶</th><th>有效客戶</th><th>有效月支</th><th>操作</th></tr></thead><tbody id="ov-tbody"></tbody></table></div>
@@ -1682,7 +1684,71 @@ window.renderOv = async function(){
     ['成功開戶',s('open'),'var(--green)',mx],
     ['無效詢問',s('invalid'),'var(--amber)',mx],
   ].map(([l,v,c,base])=>'<div class="fnl-row"><span class="fnl-lbl">'+l+'</span><div class="fnl-bw"><div class="fnl-b" style="width:'+Math.round(v/Math.max(base,1)*100)+'%;background:'+c+'"></div></div><span class="fnl-n" style="color:'+c+'">'+v+'</span></div>').join('');
+  // ── 後台診斷彙整（所有人員+時段）──
+  renderDiagSummary(recs);
   renderTbl('ov-tbody',recs);
+}
+
+function renderDiagSummary(recs){
+  const el=document.getElementById('ov-diag-summary');
+  if(!el) return;
+
+  // Group by uid+date
+  const byUidDate={};
+  recs.forEach(r=>{
+    const k=r.uid+'|'+r.date;
+    if(!byUidDate[k]) byUidDate[k]=[];
+    byUidDate[k].push(r);
+  });
+
+  // Collect all problems across all records
+  const allProblems=[];
+  recs.forEach(r=>{
+    const sameDay=(byUidDate[r.uid+'|'+r.date]||[])
+      .filter(x=>SLOTS.indexOf(x.slot)<SLOTS.indexOf(r.slot))
+      .sort((a,b)=>SLOTS.indexOf(b.slot)-SLOTS.indexOf(a.slot));
+    const prevD=sameDay.length?sameDay[0].data:null;
+    const warns=diagnoseSingleRecord(r.data,prevD);
+    warns.forEach(w=>allProblems.push({name:r.name,slot:r.slot,w}));
+  });
+
+  if(!allProblems.length){
+    el.innerHTML='<div style="background:rgba(61,214,140,.07);border:1px solid rgba(61,214,140,.2);border-radius:10px;padding:11px 16px;font-size:12px;color:var(--green);margin-bottom:14px">✅ 此條件下所有人員數據無異常！</div>';
+    return;
+  }
+
+  const redProblems=allProblems.filter(p=>p.w.level==='red');
+  const amberProblems=allProblems.filter(p=>p.w.level==='amber');
+
+  let html='<div style="background:rgba(244,96,96,.06);border:1px solid rgba(244,96,96,.25);border-radius:12px;padding:14px 16px;margin-bottom:14px">'
+    +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">'
+    +'<span style="font-size:13px;font-weight:700;color:var(--red)">🚨 數據診斷彙整</span>'
+    +(redProblems.length?'<span style="font-size:11px;background:rgba(244,96,96,.15);border:1px solid rgba(244,96,96,.3);border-radius:4px;padding:1px 8px;color:var(--red)">嚴重 '+redProblems.length+' 筆</span>':'')
+    +(amberProblems.length?'<span style="font-size:11px;background:rgba(244,185,66,.1);border:1px solid rgba(244,185,66,.3);border-radius:4px;padding:1px 8px;color:var(--amber)">注意 '+amberProblems.length+' 筆</span>':'')
+    +'<span style="font-size:11px;color:var(--muted);margin-left:auto">（點表格中人員名字旁的標籤可展開詳情）</span>'
+    +'</div>';
+
+  // Group by person
+  const byPerson={};
+  allProblems.forEach(p=>{
+    if(!byPerson[p.name]) byPerson[p.name]=[];
+    byPerson[p.name].push(p);
+  });
+
+  html+=Object.entries(byPerson).map(([name,problems])=>{
+    const hasRed=problems.some(p=>p.w.level==='red');
+    return '<div style="margin-bottom:10px;padding:10px 12px;background:rgba(0,0,0,.2);border-radius:8px;border-left:3px solid '+(hasRed?'var(--red)':'var(--amber)')+'">'
+      +'<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">'+escHtml(name)+'</div>'
+      +problems.map(p=>'<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:4px">'
+        +'<span style="font-size:10px;color:var(--muted);white-space:nowrap;padding-top:1px;font-family:var(--mono)">'+escHtml(p.slot)+'</span>'
+        +'<span style="font-size:11px;font-weight:600;color:'+(p.w.level==='red'?'var(--red)':'var(--amber)')+';white-space:nowrap">'+(p.w.level==='red'?'🚨':'⚠️')+' '+escHtml(p.w.title)+'</span>'
+        +'<span style="font-size:11px;color:var(--muted)">'+escHtml(p.w.msg)+'</span>'
+        +'</div>').join('')
+      +'</div>';
+  }).join('');
+
+  html+='</div>';
+  el.innerHTML=html;
 }
 
 window.renderDt = async function(){
@@ -1696,17 +1762,87 @@ window.renderDt = async function(){
   renderTbl('dt-tbody',recs);
 }
 
+// ── 數據診斷邏輯 ──
+function diagnoseSingleRecord(d, prevD){
+  const warns=[];
+  const totalPost=(d.fbGroup||0)+(d.fbPost||0)+(d.threads||0);
+
+  // 新增量（本時段 vs 上一時段）
+  const newLine=prevD?(d.line||0)-(prevD.line||0):(d.line||0);
+  const newInvalid=prevD?(d.invalid||0)-(prevD.invalid||0):(d.invalid||0);
+  const newGuide=prevD?(d.guide||0)-(prevD.guide||0):(d.guide||0);
+  const newOpen=prevD?(d.open||0)-(prevD.open||0):(d.open||0);
+
+  // 1. 有發文但引流=0
+  if(totalPost>=3 && newLine===0)
+    warns.push({level:'red',code:'A1',title:'發文高但引流零',
+      msg:'本時段發文 '+totalPost+' 篇，卻沒有新增引流。可能：①文宣無吸引力 ②發錯社團（死社團）③帳號被限流。→ 立刻換文宣或換社團。'});
+
+  // 2. 無效詢問 > 引流LINE
+  if(newInvalid>newLine && newInvalid>0)
+    warns.push({level:'red',code:'A2',title:'無效詢問 > 引流LINE',
+      msg:'本時段無效+'+newInvalid+'，引流LINE+'+newLine+'。私訊後卻加不到LINE。可能：①回覆太慢客戶冷掉 ②話術太像機器人。→ 加快回覆速度，優化引流話術。'});
+
+  // 3. 未滿多
+  if((d.under||0)>=5)
+    warns.push({level:'amber',code:'B1',title:'未滿比例偏高',
+      msg:'未滿人數達 '+(d.under||0)+'，代表找錯魚池！可能發到學生/打工社團，產值極低。→ 立刻轉移到有經濟壓力的族群社團。'});
+
+  // 4. 拒絕多
+  if((d.reject||0)>=3)
+    warns.push({level:'amber',code:'B2',title:'拒絕率偏高',
+      msg:'拒絕數達 '+(d.reject||0)+'。A→B工作話術太生硬，或前期信任未建立好。→ 重新檢視切入時機，不要太早提B工作。'});
+
+  // 5. 引導多但開戶少
+  if(newGuide>=2 && newOpen===0)
+    warns.push({level:'amber',code:'C1',title:'引導二線多但無開戶',
+      msg:'本時段引導二線+'+newGuide+'，但成功開戶+0。可能：①沒給客戶加助理的強烈理由 ②情報交接不完整，二線接不住。→ 確認交接情報包含痛點、資金、信任度。'});
+
+  // 6. 累計在群多但做單少（有效客戶多但月支少）
+  if((d.clients||0)>=3 && (d.monthly||0)===0)
+    warns.push({level:'amber',code:'C2',title:'在群人多但月支為零',
+      msg:'有效客戶 '+(d.clients||0)+' 人，但月支數為0。代表把人拉進群後放生了，沒有催促做任務。→ 這是最危險的警訊！客戶不做單就不可能成交。'});
+
+  // 7. 完全沒有任何活動
+  if(totalPost===0 && (d.line||0)===0)
+    warns.push({level:'amber',code:'D1',title:'本時段無任何開發',
+      msg:'本時段FB社團/發文/Threads都是0，引流LINE也是0。→ 請確認是否在積極開發，帳號是否正常運作。'});
+
+  return warns;
+}
+
 function renderTbl(id,recs){
   const el=document.getElementById(id);
   if(!recs.length){el.innerHTML='<tr><td colspan="15" class="empty">此條件無數據</td></tr>';return}
   recs.sort((a,b)=>b.ts-a.ts);
-  el.innerHTML=recs.map(r=>{
+
+  // Group by uid+date to find previous slots
+  const byUidDate={};
+  recs.forEach(r=>{
+    const k=r.uid+'|'+r.date;
+    if(!byUidDate[k]) byUidDate[k]=[];
+    byUidDate[k].push(r);
+  });
+
+  const rows=recs.map(r=>{
     const d=r.data;
     const editKey=r.date+'|'+r.uid+'|'+r.slot;
+
+    // Find previous slot for this user on same date
+    const sameDay=(byUidDate[r.uid+'|'+r.date]||[])
+      .filter(x=>SLOTS.indexOf(x.slot)<SLOTS.indexOf(r.slot))
+      .sort((a,b)=>SLOTS.indexOf(b.slot)-SLOTS.indexOf(a.slot));
+    const prevD=sameDay.length?sameDay[0].data:null;
+    const warns=diagnoseSingleRecord(d,prevD);
+
+    const warnBadge=warns.length
+      ?'<span class="diag-badge" data-key="'+escAttr(editKey)+'" style="cursor:pointer;margin-left:4px;font-size:10px;background:'+(warns.some(w=>w.level==='red')?'rgba(244,96,96,.15)':'rgba(244,185,66,.12)')+';border:1px solid '+(warns.some(w=>w.level==='red')?'var(--red)':'var(--amber)')+';border-radius:4px;padding:1px 6px;color:'+(warns.some(w=>w.level==='red')?'var(--red)':'var(--amber)')+'">'+warns.length+' 問題 ▼</span>'
+      :'<span style="font-size:10px;color:var(--green);margin-left:4px">✓</span>';
+
     return '<tr>'
       +'<td class="tdm">'+r.date+'</td>'
       +'<td><span class="bslot">'+r.slot+'</span></td>'
-      +'<td>'+escHtml(r.name)+'<span style="color:var(--dim);font-size:10px;margin-left:4px">'+escHtml(r.uid)+'</span></td>'
+      +'<td>'+escHtml(r.name)+warnBadge+'<span style="color:var(--dim);font-size:10px;margin-left:4px">'+escHtml(r.uid)+'</span></td>'
       +'<td class="tdm">'+(d.fbGroup||0)+'</td>'
       +'<td class="tdm">'+(d.fbPost||0)+'</td>'
       +'<td class="tdm">'+(d.threads||0)+'</td>'
@@ -1719,11 +1855,42 @@ function renderTbl(id,recs){
       +'<td class="tdm" style="color:var(--green)">'+(d.clients||0)+'</td>'
       +'<td class="tdm" style="color:var(--cyan)">'+(d.monthly||0)+'</td>'
       +'<td><button class="tbl-edit-btn" data-key="'+escAttr(editKey)+'" style="background:rgba(79,142,247,.12);border:1px solid var(--accent);color:var(--accent);border-radius:5px;padding:3px 10px;cursor:pointer;font-size:11px">✏ 修改</button></td>'
-      +'</tr>';
-  }).join('');
+      +'</tr>'
+      // Diagnosis row (hidden by default)
+      +(warns.length
+        ?'<tr class="diag-row" id="diag-'+escAttr(editKey)+'" style="display:none"><td colspan="15" style="padding:0;border-top:none">'
+          +'<div style="padding:8px 14px;background:rgba(0,0,0,.25);border-bottom:1px solid var(--line)">'
+          +warns.map(w=>'<div style="display:flex;gap:10px;align-items:flex-start;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)">'
+            +'<span style="font-size:11px;font-weight:700;color:'+(w.level==='red'?'var(--red)':'var(--amber)')+';white-space:nowrap;padding-top:1px">'+(w.level==='red'?'🚨':'⚠️')+' '+escHtml(w.code)+'</span>'
+            +'<div>'
+            +'<div style="font-size:12px;font-weight:600;color:'+(w.level==='red'?'var(--red)':'var(--amber)')+'">'+escHtml(w.title)+'</div>'
+            +'<div style="font-size:11px;color:var(--text);line-height:1.6;margin-top:2px">'+escHtml(w.msg)+'</div>'
+            +'</div>'
+            +'</div>').join('')
+          +'</div>'
+          +'</td></tr>'
+        :'');
+  });
+
+  el.innerHTML=rows.join('');
+
   // Wire edit buttons
   el.querySelectorAll('.tbl-edit-btn').forEach(btn=>{
     btn.addEventListener('click',()=>openRecordEdit(btn.dataset.key));
+  });
+
+  // Wire diagnosis badges - toggle diagnosis row
+  el.querySelectorAll('.diag-badge').forEach(badge=>{
+    badge.addEventListener('click',()=>{
+      const key=badge.dataset.key;
+      const row=document.getElementById('diag-'+key);
+      if(!row) return;
+      const isOpen=row.style.display!=='none';
+      row.style.display=isOpen?'none':'table-row';
+      badge.textContent=isOpen?badge.textContent.replace('▲','▼').replace(' 收起',''):badge.textContent.replace('▼','▲')+' 收起';
+      // Trim the text
+      if(!isOpen) badge.textContent=badge.textContent.replace('▼','▲');
+    });
   });
 }
 
