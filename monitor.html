@@ -80,6 +80,7 @@ input,select,button{font-family:var(--font);font-size:14px}
 .ok-msg{color:var(--green);font-size:13px;display:none}
 .done-banner{background:rgba(61,214,140,.12);border:1px solid rgba(61,214,140,.4);border-radius:8px;padding:11px 16px;font-size:13px;color:#3dd68c;font-weight:500;margin-bottom:14px;display:none}
 .ai-card{background:linear-gradient(135deg,#0e1628,#141030);border:1px solid rgba(167,139,250,.35);border-radius:14px;padding:20px;margin-bottom:14px;display:none}
+@media(max-width:900px){#diag-panel{display:none!important}}
 .ai-card-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
 .ai-card-icon{font-size:20px}
 .ai-card-title{font-size:14px;font-weight:700;color:var(--purple)}
@@ -239,6 +240,9 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
     <div class="slot-tabs" id="slot-tabs"></div>
     <div class="done-banner" id="done-banner">✅ 此時段已完成填報，重新提交即可覆蓋</div>
 
+    <!-- Two-column layout: form + diagnosis -->
+    <div style="display:flex;gap:16px;align-items:flex-start">
+    <div style="flex:1;min-width:0">
     <!-- 數據填報 -->
     <div class="fcard">
       <div class="fslabel">📣 FB 推廣</div>
@@ -281,6 +285,25 @@ tbody td{padding:8px 11px;font-size:13px;color:var(--text);white-space:nowrap}
         <div class="ai-loading"><div class="ai-dots"><span></span><span></span><span></span></div>分析中，請稍候…</div>
       </div>
     </div>
+
+    </div><!-- end form column -->
+
+    <!-- 右側診斷面板 -->
+    <div id="diag-panel" style="width:340px;flex-shrink:0;position:sticky;top:70px;display:none">
+      <div style="background:var(--bg2);border:1px solid var(--line);border-radius:14px;overflow:hidden">
+        <div style="padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:15px">📋</span>
+            <span style="font-size:13px;font-weight:700;color:var(--text)">本時段診斷</span>
+          </div>
+          <span id="diag-panel-slot" style="font-size:11px;color:var(--muted);font-family:var(--mono)"></span>
+        </div>
+        <div id="diag-panel-body" style="padding:12px 14px;max-height:calc(100vh - 160px);overflow-y:auto">
+          <div style="color:var(--dim);font-size:12px;text-align:center;padding:20px 0">提交數據後顯示診斷</div>
+        </div>
+      </div>
+    </div>
+    </div><!-- end two-column -->
 
     <!-- FB截圖 -->
     <div class="fcard">
@@ -2901,6 +2924,7 @@ function runDataDiagnosis(data, prev){
       +'</div>';
     body.innerHTML=goodHtml+'<div class="ai-loading"><div class="ai-dots"><span></span><span></span><span></span></div>AI 分析中…</div>';
     el.scrollIntoView({behavior:'smooth',block:'nearest'});
+    updateDiagPanel(data, prev, []);
     return;
   }
 
@@ -2932,6 +2956,53 @@ function runDataDiagnosis(data, prev){
 
   body.innerHTML=diagHtml+'<div class="ai-loading"><div class="ai-dots"><span></span><span></span><span></span></div>AI 分析中…</div>';
   el.scrollIntoView({behavior:'smooth',block:'nearest'});
+
+  // Also update sticky side panel
+  updateDiagPanel(data, prev, warns);
+}
+
+function updateDiagPanel(data, prev, warns){
+  const panel=document.getElementById('diag-panel');
+  const panelBody=document.getElementById('diag-panel-body');
+  const panelSlot=document.getElementById('diag-panel-slot');
+  if(!panel||!panelBody) return;
+
+  panel.style.display='block';
+  if(panelSlot) panelSlot.textContent=CUR_SLOT;
+
+  if(!warns||!warns.length){
+    panelBody.innerHTML='<div style="text-align:center;padding:20px 0">'
+      +'<div style="font-size:28px;margin-bottom:8px">✅</div>'
+      +'<div style="font-size:13px;font-weight:600;color:var(--green);margin-bottom:4px">本時段數據正常</div>'
+      +'<div style="font-size:11px;color:var(--muted)">沒有發現問題，繼續保持！</div>'
+      +'</div>';
+    return;
+  }
+
+  const redCount=warns.filter(w=>w.level==='red').length;
+  const amberCount=warns.filter(w=>w.level==='amber').length;
+
+  let html='<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">'
+    +(redCount?'<span style="font-size:11px;background:rgba(244,96,96,.15);border:1px solid rgba(244,96,96,.3);border-radius:4px;padding:2px 8px;color:var(--red);font-weight:600">🚨 嚴重 '+redCount+' 項</span>':'')
+    +(amberCount?'<span style="font-size:11px;background:rgba(244,185,66,.1);border:1px solid rgba(244,185,66,.3);border-radius:4px;padding:2px 8px;color:var(--amber);font-weight:600">⚠️ 注意 '+amberCount+' 項</span>':'')
+    +'</div>';
+
+  html+=warns.map(w=>{
+    const isRed=w.level==='red';
+    const border=isRed?'var(--red)':'var(--amber)';
+    const bg=isRed?'rgba(244,96,96,.07)':'rgba(244,185,66,.06)';
+    return '<div style="background:'+bg+';border-left:3px solid '+border+';border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:8px">'
+      +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">'
+      +(isRed?'<span>🚨</span>':'<span>⚠️</span>')
+      +'<span style="font-size:12px;font-weight:700;color:'+border+'">'+escHtml(w.title)+'</span>'
+      +'<span style="font-size:10px;color:var(--muted);font-family:var(--mono)">'+escHtml(w.code)+'</span>'
+      +'</div>'
+      +'<div style="font-size:11px;color:var(--text);line-height:1.6">'+escHtml(w.msg)+'</div>'
+      +'</div>';
+  }).join('');
+
+  html+='<div style="font-size:10px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--line)">💡 改善後重新提交數據，診斷會自動更新</div>';
+  panelBody.innerHTML=html;
 }
 
 // ══════════════════════════════════════
